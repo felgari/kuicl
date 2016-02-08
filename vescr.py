@@ -50,6 +50,6 @@ def ve_scraping():
 
     bsObj = get_page(VE_URL, req)
     
-    lm_data = process_page(bsObj)
+    ve_data = process_page(bsObj)
     
-    return lm_data
+    return ve_data

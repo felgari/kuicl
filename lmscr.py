@@ -35,6 +35,7 @@ def process_page(bsObj):
                 
             if i == NUM_ROWS:
                 return lm_data
+            
             elif n >= LM_FIRST_COL and n <= LM_LAST_COL:
 
                 lm_data[i][j] = int(td_center.get_text().strip())
