@@ -21,15 +21,16 @@
 
 import sys
 import csv
-from lmscr import lm_scraping
-from vescr import ve_scraping
+from ctes import *
+from qscraping import *
+from compdata import *
     
 NUM_ARGS = 2
 
 def read_input_file(input_file_name):
                 
     data = []
-    
+
     with open(input_file_name, 'rb') as f:
         
         reader = csv.reader(f)
@@ -41,23 +42,33 @@ def read_input_file(input_file_name):
         except csv.Error:
             print "ERROR: reading file %s" % input_file_name
             
-    return data                
+    return data  
 
-def main(input_file_name):
+def main(index):
     """Main function.
     
     Args:
-        input_file_name: Name of the input file to process.
+        index: Index used for the scraping.
 
     """    
     
     print "Let's go ..."
     
-    lm_data = lm_scraping()
+    # Do scraping.
+    scr = QScraping()
+
+    scr.do_scraping()
     
-    ve_data = ve_scraping()
+    # Read local data.
+    local_index_file_name = INPUT_FILE_NAME_PREFIX + index + INPUT_FILE_NAME_EXT
+    local_index_data = read_input_file(local_index_file_name)
+    local_pro_data = read_input_file(PRO_FILE_NAME)
+    local_pre_data = read_input_file(PRE_FILE_NAME)
     
-    print ve_data    
+    # Compose data.
+    compdat = ComposeData(scr, local_index_data, local_pro_data, local_pre_data)
+    
+    compdat.compose()
         
     print "Program finished."
     
