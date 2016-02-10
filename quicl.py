@@ -70,7 +70,7 @@ def main(index):
     scr = QScraping(index)
 
     scr.do_scraping()
-    
+
     # Compose data.
     compdat = ComposeData(scr, local_index_data, local_pro_data, local_pre_data)
     
