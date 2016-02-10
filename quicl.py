@@ -28,6 +28,8 @@ from compdata import *
 NUM_ARGS = 2
 
 def read_input_file(input_file_name):
+             
+    print "Reading local file: %s" % input_file_name
                 
     data = []
 
@@ -54,16 +56,20 @@ def main(index):
     
     print "Let's go ..."
     
-    # Do scraping.
-    scr = QScraping()
-
-    scr.do_scraping()
-    
     # Read local data.
     local_index_file_name = INPUT_FILE_NAME_PREFIX + index + INPUT_FILE_NAME_EXT
     local_index_data = read_input_file(local_index_file_name)
-    local_pro_data = read_input_file(PRO_FILE_NAME)
-    local_pre_data = read_input_file(PRE_FILE_NAME)
+    
+    pro_file_name = PRO_FILE_NAME_PREFIX + index + INPUT_FILE_NAME_EXT
+    local_pro_data = read_input_file(pro_file_name)
+    
+    pre_file_name = PRE_FILE_NAME_PREFIX + index + INPUT_FILE_NAME_EXT    
+    local_pre_data = read_input_file(pre_file_name)    
+    
+    # Do scraping.
+    scr = QScraping(index)
+
+    scr.do_scraping()
     
     # Compose data.
     compdat = ComposeData(scr, local_index_data, local_pro_data, local_pre_data)
@@ -80,5 +86,5 @@ if __name__ == "__main__":
     if len(sys.argv) == NUM_ARGS:
         sys.exit(main(sys.argv[1]))
     else:
-        print "ERROR: Wrong number of parameters. Use: %s input_file_name" % \
+        print "ERROR: Wrong number of parameters. Use: %s index" % \
         sys.argv[0]   
