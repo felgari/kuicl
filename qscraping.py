@@ -18,10 +18,10 @@
 """QScraping class.
 """
 
-import json
 import requests
 import urllib2
 from bs4 import BeautifulSoup
+import json
 from ctes import *
 
 class QScraping(object):
@@ -135,7 +135,7 @@ class QScraping(object):
                 j += 1
                 if j == NUM_COLS:
                     i += 1
-                    j = 0               
+                    j = 0      
     
     def _ve_scraping(self):
         
@@ -146,7 +146,7 @@ class QScraping(object):
         self._process_ve_page(bsObj)
 
     # ------------------------------------- QU scraping.
-    def process_qu_page(self, bsObj):
+    def _process_qu_page(self, bsObj):
         
         i = 0
         j = 0   
@@ -168,7 +168,7 @@ class QScraping(object):
                  
             n = (n + 1) % QU_TD_ROW_SIZE
     
-    def qu_scraping(self):
+    def _qu_scraping(self):
         
         req = self._prepare_request(QU_URL)
     
@@ -178,20 +178,22 @@ class QScraping(object):
             
     # ------------------------------------- Q1 scraping.
     def _process_q1_page(self, bsObj):
-    
-        qi_dict = json.load(bsObj.find("body").get_text())
+        
+        json_txt = str(bsObj.find("body").get_text())
+        
+        json_data = json.loads(json_txt)
         
         for i in range(NUM_ROWS - 1):
-            el = qi_dict[i]
+            el = json_data[i]
             
-            self._q1_data[i][0] = int(el[first_field])
-            self._q1_data[i][1] = int(el[second_field])
-            self._q1_data[i][2] = int(el[third_field])                
+            self._q1_data[i][0] = int(el[FIRST_FIELD])
+            self._q1_data[i][1] = int(el[SECOND_FIELD])
+            self._q1_data[i][2] = int(el[THIRD_FIELD])             
     
-    def _q1_scraping(self, index):
+    def _q1_scraping(self):
         
         # The ULR depends on the index received.  
-        url = Q1_URL + index
+        url = Q1_URL + self._index
         
         req = self._prepare_request(url)
     
@@ -208,7 +210,7 @@ class QScraping(object):
             temp_lst.append(td.get_text())  
             
         for i in range(size):
-            data[i][index] = CL_STR_CONVERT[temp_lst[i]]                   
+            data[i][index] = int(temp_lst[i])                  
     
     def _process_cl_page(self, bsObj, size):
         
@@ -220,10 +222,13 @@ class QScraping(object):
             temp_lst.append(td.get_text()) 
             
         for i in range(size):
-            data[i][0] = CL_STR_CONVERT[temp_lst[i]]                  
+            try:
+                data[i][0] = CL_STR_CONVERT[temp_lst[i]]
+            except KeyError as ke:
+                print "ERROR: %s" % ke                  
            
         for i in range(len(CL_TD_CLASSES)):            
-            self._fill_cl_data(data, i, size, bsObj, CL_TD_CLASSES[i])                                     
+            self._fill_cl_data(data, i + 1, size, bsObj, CL_TD_CLASSES[i])                                     
             
         return data            
     
@@ -289,15 +294,21 @@ class QScraping(object):
     def do_scraping(self):
         """Do all the scraping.
         """
-        
+
         self._lm_scraping()
-    
+        print self._lm_data
+            
         self._ve_scraping()
+        print self._ve_data
     
         self._qu_scraping()
-    
+        print self._qu_data
+
         self._q1_scraping()
-    
+        print self._q1_data
+
         self._b1_data = self._cl_scraping(CL_B1_URL, B1_SIZE)
-    
-        self._a2_data = self._cl_scraping(CL_A2_URL, A2_SIZE)        
+        print self._b1_data
+
+        self._a2_data = self._cl_scraping(CL_A2_URL, A2_SIZE)   
+        print self._a2_data    
