@@ -18,6 +18,7 @@
 """Composition of different data.
 """
 
+import csv
 import numpy as np
 from ctes import *
 from qscraping import *
@@ -36,63 +37,72 @@ class ComposeData(object):
             
     def _fill_data(self):
         
+        max_offset = 0
+        
         len_index = len(self._index_data[0])
 
+        # First local names.
         for i in range(NUM_ROWS):
             for j in range(len_index):
                 self._compdata[i][j] = self._index_data[i][j]
         
-        pre_base = len_index + len(self._pro_data[0])
-        lm_base = pre_base + len(self._pre_data[0])
-        ve_base = lm_base + len(self._scr.lm_data[0])
-        qu_base = ve_base + len(self._scr.ve_data[0])
-        q1_base = qu_base + len(self._scr.qu_data[0]) 
-        med_base = q1_base + len(self._scr.q1_data[0])               
-
+        # Calculate the offset (column) where to start each data block.
+        pro_offset = len_index
+        pre_offset = pro_offset + len(self._pro_data[0])
+        lm_offset = pre_offset + len(self._pre_data[0])
+        ve_offset = lm_offset + len(self._scr.lm_data[0])
+        qu_offset = ve_offset + len(self._scr.ve_data[0])
+        q1_offset = qu_offset + len(self._scr.qu_data[0]) 
+        mean_offset = q1_offset + len(self._scr.q1_data[0]) 
+        
         for i in range(NUM_ROWS):
             
-            max_val = [0] * NUM_EXT_SOURCES
-            max_str = [''] * NUM_EXT_SOURCES
-
-            max_set = set()
+            # Values to calculate the maximum values of each block.
+            max_sign_val = [0] * NUM_EXT_SOURCES
+            max_sign_str = [''] * NUM_EXT_SOURCES
             
             for j in range(NUM_COLS):
                 
                 # Fill with data scraped. 
-                self._compdata[i][j + len_index] = self._pro_data[i][j]
-                self._compdata[i][j + pre_base] = self._pre_data[i][j]
-                self._compdata[i][j + lm_base] = self._src.lm_data[i][j]
-                self._compdata[i][j + ve_base] = self._src._ve_data[i][j]
-                self._compdata[i][j + qu_base] = self._src._qu_data[i][j]
-                self._compdata[i][j + q1_base] = self._src._q1_data[i][j]
+                self._compdata[i][j + pro_offset] = self._pro_data[i][j]
+                self._compdata[i][j + pre_offset] = self._pre_data[i][j]
+                self._compdata[i][j + lm_offset] = self._scr.lm_data[i][j]
+                self._compdata[i][j + ve_offset] = self._scr._ve_data[i][j]
+                self._compdata[i][j + qu_offset] = self._scr._qu_data[i][j]
+                self._compdata[i][j + q1_offset] = self._scr._q1_data[i][j]
                 
                 # Calculate a mean of the data scraped for this column.                
-                np_arr = np.array([self._pro_data[i][j], \
-                                  self._pre_data[i][j], \
-                                  self._src.lm_data[i][j], \
-                                  self._src._ve_data[i][j], \
-                                  self._src._qu_data[i][j], \
-                                  self._src._q1_data[i][j]])     
+                val_np_arr = np.array([int(self._pro_data[i][j]), \
+                                      int(self._pre_data[i][j]), \
+                                      int(self._scr.lm_data[i][j]), \
+                                      int(self._scr._ve_data[i][j]), \
+                                      int(self._scr._qu_data[i][j]), \
+                                      int(self._scr._q1_data[i][j])]) 
                                  
-                self._compdata[i][j + med_base] = np.mean(np_arr)
+                self._compdata[i][j + mean_offset] = np.mean(val_np_arr)
                                 
-                curr_max = CURRENT_MAX[j]
+                curr_sign_max = CURRENT_MAX[j]
                 
-                for i in range(NUM_EXT_SOURCES):
-                    if np_arr[i] > max_val[i]:
-                        max_val[i] = np_arr[i]
-                        max_str[i] = curr_max   
-                        max_set.add(curr_max)                                                                 
+                for k in range(NUM_EXT_SOURCES):
+                    if val_np_arr[k] > max_sign_val[k]:
+                        max_sign_val[k] = val_np_arr[k]
+                        max_sign_str[k] = curr_sign_max   
+                        
+            # A set of the maximum values.            
+            max_sign_set = set()                                                                                
             
             # Fill highest value of each external.        
-            max_base = med_base + NUM_COLS   
+            max_sign_offset = mean_offset + NUM_COLS   
             
-            for i in range(NUM_EXT_SOURCES):
-                self._compdata[i][NUM_COLS + max_base + i] = max_str[i] 
+            for k in range(NUM_EXT_SOURCES):
+                self._compdata[i][max_sign_offset + k] = max_sign_str[k] 
+                max_sign_set.add(max_sign_str[k])
                          
             # Fill summary of highest values.
-            self._compdata[i][NUM_COLS + max_base + NUM_EXT_SOURCES] = \
-                ''.join(list(max_set))
+            self._compdata[i][max_sign_offset + NUM_EXT_SOURCES] = \
+                ''.join(list(max_sign_set))
+                
+            mat_offset = max_sign_offset + NUM_EXT_SOURCES + 1
             
             # Fill data for each name.
             name_lo_data = []
@@ -100,67 +110,88 @@ class ComposeData(object):
                 
             if self._compdata[i][TYPE_COL] == TYPE_1_COL:
                 name_lo_data = self._scr.get_data_from_b1(self._compdata[i][NAME_LO_COL])
-                name_vi_data = self._scr.get_data_from_b1(self._compdata[i][NAME_VI_COL])
+                name_vi_data = self._scr.get_data_from_b1(self._compdata[i][NAME_VI_COL], False)
             else:
                 name_lo_data = self._scr.get_data_from_a2(self._compdata[i][NAME_LO_COL])
-                name_vi_data = self._scr.get_data_from_a2(self._compdata[i][NAME_VI_COL])
+                name_vi_data = self._scr.get_data_from_a2(self._compdata[i][NAME_VI_COL], False)               
                 
-            if len(name_lo_data) < NAME_DATA_LEN:
-                print "ERROR: Retrieving data for: %s" % self._compdata[i][NAME_LO_COL] 
+            for k in range(NAME_DATA_LEN):
+                self._compdata[i][mat_offset + k] = int(name_lo_data[k])
                 
-            if len(name_vi_data) < NAME_DATA_LEN:
-                print "ERROR: Retrieving data for: %s" % self._compdata[i][NAME_VI_COL]                 
+            for k in range(NAME_DATA_LEN):
+                self._compdata[i][mat_offset + k + NAME_DATA_LEN] = int(name_vi_data[k])  
                 
-            for k in range(len(name_lo_data)):
-                self._compdata[i][k + MAT_FIRST_COL] = int(name_lo_data[k])
-                
-            for k in range(len(name_vi_data)):
-                self._compdata[i][k + MAT_FIRST_COL + NAME_DATA_LEN] = int(name_vi_data[k])                            
+            max_offset = mat_offset + 2 * NAME_DATA_LEN
+            
+        return mat_offset, mean_offset
         
-    def _calculate(self):        
+    def _calculate(self, mat_offset, mean_offset):        
         
         # Calculate Ps depending on the data for each one.
         for i in range(NUM_ROWS):
-            p_with = 1
+            p_with = 1.0
             
             if self._compdata[i][TYPE_COL] == TYPE_1_COL: 
                 p_with = P_WITH_B1
             else:
                 p_with = P_WITH_A2
                 
-            p_lo_sum = 0
-            p_vi_sum = 0                
+            p_lo_sum = 0.0
+            p_lo_1 = 0.0
+            p_lo_2 = 0.0
+            p_lo_3 = 0.0
+                   
+            p_vi_sum = 0.0  
+            p_vi_1 = 0.0
+            p_vi_2 = 0.0
+            p_vi_3 = 0.0   
                 
             for k in range(NAME_DATA_LEN):
-                p_lo_sum += self._compdata[i][MAT_FIRST_COL + k]
+                p_lo_sum += self._compdata[i][mat_offset + k]                
+                p_vi_sum += self._compdata[i][mat_offset + NAME_DATA_LEN + k]
                 
-                p_vi_sum += self._compdata[i][MAT_FIRST_COL + NAME_DATA_LEN + k]
+            p_lo_sum *= 1.0
+            p_vi_sum *= 1.0
 
-            p_lo_1 = self._compdata[i][MAT_FIRST_COL] / p_lo_sum
-            p_lo_2 = self._compdata[i][MAT_FIRST_COL + 1] / p_lo_sum
-            p_lo_3 = self._compdata[i][MAT_FIRST_COL + 2] / p_lo_sum
+            if p_lo_sum > 0.0:
+                p_lo_1 = ( 1.0 * self._compdata[i][mat_offset] ) / p_lo_sum
+                p_lo_2 = ( 1.0 * self._compdata[i][mat_offset + 1] ) / p_lo_sum
+                p_lo_3 = ( 1.0 * self._compdata[i][mat_offset + 2] ) / p_lo_sum
             
-            p_vi_1 = self._compdata[i][MAT_FIRST_COL + NAME_DATA_LEN] / p_vi_sum
-            p_vi_2 = self._compdata[i][MAT_FIRST_COL + NAME_DATA_LEN + 1] / p_vi_sum
-            p_vi_3 = self._compdata[i][MAT_FIRST_COL + NAME_DATA_LEN + 2] / p_vi_sum 
+            if p_vi_sum > 0.0:
+                p_vi_1 = ( 1.0 * self._compdata[i][mat_offset + NAME_DATA_LEN] ) / p_vi_sum
+                p_vi_2 = ( 1.0 * self._compdata[i][mat_offset + NAME_DATA_LEN + 1] ) / p_vi_sum
+                p_vi_3 = ( 1.0 * self._compdata[i][mat_offset + NAME_DATA_LEN + 2] ) / p_vi_sum 
             
             p_13 = p_lo_1 * p_vi_3
             p_22 = p_lo_2 * p_vi_2
             p_31 = p_lo_3 * p_vi_1   
                 
-            p_1 = p_13 * self._compdata[i][AVE_FIRST_COL] / p_with
-            p_2 = p_22 * self._compdata[i][AVE_FIRST_COL + 1] / p_with                     
-            p_3 = p_31 * self._compdata[i][AVE_FIRST_COL + 2] / p_with  
+            p_1 = 0.0
+            p_2 = 0.0                 
+            p_3 = 0.0
+            
+            if p_with > 0.0:
+                p_1 = p_13 * self._compdata[i][mean_offset] / p_with
+                p_2 = p_22 * self._compdata[i][mean_offset + 1] / p_with                     
+                p_3 = p_31 * self._compdata[i][mean_offset + 2] / p_with  
             
             p_sum = p_1 + p_2 + p_3
             
-            p_1_final = 100 * p_1 / p_sum
-            p_2_final = 100 * p_2 / p_sum
-            p_3_final = 100 * p_3 / p_sum  
+            p_1_final = 0.0
+            p_2_final = 0.0
+            p_3_final = 0.0        
             
-            self._compdata[i][ST_FIRST_COL] = p_1_final
-            self._compdata[i][ST_FIRST_COL + 1] = p_2_final  
-            self._compdata[i][ST_FIRST_COL + 2] = p_3_final 
+            if p_sum > 0.0:
+                p_1_final = 100.0 * p_1 / p_sum
+                p_2_final = 100.0 * p_2 / p_sum
+                p_3_final = 100.0 * p_3 / p_sum 
+                
+            st_offset = mat_offset + NAME_DATA_LEN * 2 
+            
+            self._compdata[i][st_offset] = round(p_1_final)
+            self._compdata[i][st_offset + 1] = round(p_2_final)  
+            self._compdata[i][st_offset + 2] = round(p_3_final) 
             
             # Set the values over the minimum.
             p_dict = { MAX_IS_FIRST : p_1_final, \
@@ -175,25 +206,29 @@ class ComposeData(object):
                 if p_dict[keys_sorted[i]] > MIN_PER:   
                     val += keys_sorted[i]                   
             
-            self._compdata[i][ST_FIRST_COL + 3] = val  
+            self._compdata[i][st_offset + 3] = val              
         
     def _write_data(self):
         
         output_file_name = PREFIX_OUTPUT_FILE_NAME + \
-            self._scr.index + OUTPUT_FILE_NAME_EXT
+            self._scr.index + OUTPUT_FILE_NAME_EXT        
+        
+        print "Saving results in: %s" % output_file_name    
                     
-        with open(output_file_name, "w") as fw:
+        with open(output_file_name, "w") as csvfile:
+            csvwriter = csv.writer(csvfile, delimiter=CSV_DELIMITER)            
             
             for i in range(len(self._compdata)):
-                fw.write(CSV_DELIMITER.join(self._compdata[i]))
+                csvwriter.writerow(self._compdata[i])
+
                          
     def compose(self):
         
         # Fill with source data from index.
-        self._fill_data()
+        mat_offset, mean_offset = self._fill_data()
         
         # Calculations.
-        self._calculate()
+        self._calculate(mat_offset, mean_offset)
         
         # Write results.  
         self._write_data()      
