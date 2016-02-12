@@ -253,13 +253,23 @@ class QScraping(object):
                 
         return data        
     
-    def get_data_from_b1(self, name):
+    def get_data_from_b1(self, name, as_lo = True):
         
-        return self._get_data_from_cl(self._b1_data, name)
+        data = self._get_data_from_cl(self._b1_data, name)
+        
+        if as_lo:
+            return data[:NAME_DATA_LEN]
+        else:
+            return data[NAME_DATA_LEN:] 
     
-    def get_data_from_a2(self, name):
+    def get_data_from_a2(self, name, as_lo = True):
         
-        return self._get_data_from_cl(self._a2_data, name)    
+        data = self._get_data_from_cl(self._a2_data, name)   
+        
+        if as_lo:
+            return data[:NAME_DATA_LEN]
+        else:
+            return data[NAME_DATA_LEN:]          
     
     # ------------------------------------- Properties.  
     @property
@@ -296,19 +306,13 @@ class QScraping(object):
         """
 
         self._lm_scraping()
-        print self._lm_data
-            
+   
         self._ve_scraping()
-        print self._ve_data
-    
+
         self._qu_scraping()
-        print self._qu_data
 
         self._q1_scraping()
-        print self._q1_data
 
         self._b1_data = self._cl_scraping(CL_B1_URL, B1_SIZE)
-        print self._b1_data
 
-        self._a2_data = self._cl_scraping(CL_A2_URL, A2_SIZE)   
-        print self._a2_data    
+        self._a2_data = self._cl_scraping(CL_A2_URL, A2_SIZE)
