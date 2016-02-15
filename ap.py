@@ -23,26 +23,13 @@ import sys
 import csv
 import operator
 
-FILE_NAME = 'pro.csv'
-FIRST_NAME = 'A'
-SECOND_NAME = 'B'
-THIRD_NAME = 'C'
-
-ROW_NAME = 'i'
-COL_NAME = 'j'
-
-MULT = 0.75
-VALUE_LIMIT = 19
-MULT_LIMIT = 40
-COMB = [ [0, 3], [2 ,2], [5, 0], [7, 0], [3, 3] ]
-
-COMPLEMENT = { 'A':'C', 'B':'ABC', 'C':'AB', 'AB':'BC', 'BC':'A', 'AC':'B', 'ABC': 'B' }
+from ctes import *
 
 def read_data():
     
     data = []
     
-    with open(FILE_NAME, 'rb') as f:
+    with open(AP_FILE_NAME, 'rb') as f:
         reader = csv.reader(f)
         try:
             for row in reader:
@@ -55,7 +42,7 @@ def read_data():
                 data.append(row_num)
         
         except csv.Error:
-            print "ERROR: reading file %s" % FILE_NAME
+            print "ERROR: reading file %s" % AP_FILE_NAME
             
     return data
 
@@ -71,6 +58,8 @@ def get_name(value):
     return name
 
 def get_base(data):
+    """Get the maximum of each block. """
+    
     num_row = len(data)
     num_col = len(data[0])    
     
@@ -94,6 +83,8 @@ def get_base(data):
     return data_control, base
 
 def get_data_rest(data, data_control):
+    """Get the rest of elements sorted. """
+    
     num_row = len(data)
     num_col = len(data[0])      
     
@@ -104,7 +95,9 @@ def get_data_rest(data, data_control):
                 key = "%s%d%s%d" % (ROW_NAME, i, COL_NAME, j)
                 data_rest[key] = data[i][j]
     
-    sorted_data_rest = sorted(data_rest.items(), key=operator.itemgetter(1), reverse=True)
+    sorted_data_rest = sorted(data_rest.items(), 
+                              key=operator.itemgetter(1), 
+                              reverse=True)
     
     return sorted_data_rest
 
@@ -147,6 +140,7 @@ def possible_data(do, tr):
     return poss
 
 def get_ap(base, data_rest):
+    """Get other alternatives to consider. """
 
     cost = 0
     i = 0
@@ -177,17 +171,27 @@ def get_ap(base, data_rest):
         else:
             break
         
+    # Sort the content of each element.
     for i in range(len(base)):
-        base[i] = ''.join(sorted(base[i]))
+        new_base = ''
+        
+        for n in NAMES_AP:        
+            if base[i].find(n) >= 0:
+                new_base += n
+                
+        base[i] = new_base
         
     return base
 
 def ap(data):
     
+    # Get the maximum of each block.
     data_control, base = get_base(data)
         
+    # Get the rest of elements sorted.
     data_rest = get_data_rest(data, data_control)
     
+    # Get other alternatives to consider.
     ap_data = get_ap(base, data_rest)
     
     return ap_data 
@@ -201,13 +205,24 @@ def complementary(data):
     
     return comp
 
+def write_data(ap_data, comp_ap_data):
+    
+    print "Saving results in: %s" % AP_FILE_NAME_OUT    
+                
+    with open(AP_FILE_NAME_OUT, "w") as csvfile:
+        csvwriter = csv.writer(csvfile, delimiter=CSV_DELIMITER)            
+        
+        for i in range(len(ap_data)):
+            row = [ ap_data[i], comp_ap_data[i] ]
+            csvwriter.writerow(row)    
+
 def main():
     """Main function.
 
     """    
 
     data = read_data()
-            
+                
     ap_data = ap(data)
     
     print ap_data
@@ -215,6 +230,8 @@ def main():
     comp_ap_data = complementary(ap_data)
     
     print comp_ap_data
+    
+    write_data(ap_data, comp_ap_data)
         
     print "Program finished."
     
