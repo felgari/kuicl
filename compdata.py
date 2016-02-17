@@ -21,7 +21,7 @@
 import csv
 import numpy as np
 from ctes import *
-from qscraping import *
+from kscraping import *
 
 class ComposeData(object):
     
