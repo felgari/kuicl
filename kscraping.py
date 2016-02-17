@@ -24,7 +24,7 @@ from bs4 import BeautifulSoup
 import json
 from ctes import *
 
-class QScraping(object):
+class KScraping(object):
     """Scraping on some web pages.
     """
     

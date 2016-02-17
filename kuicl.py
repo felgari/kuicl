@@ -22,7 +22,7 @@
 import sys
 import csv
 from ctes import *
-from qscraping import *
+from kscraping import *
 from compdata import *
     
 NUM_ARGS = 2
@@ -67,7 +67,7 @@ def main(index):
     local_pre_data = read_input_file(pre_file_name)    
     
     # Do scraping.
-    scr = QScraping(index)
+    scr = KScraping(index)
 
     scr.do_scraping()
 
