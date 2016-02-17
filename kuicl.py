@@ -33,16 +33,18 @@ def read_input_file(input_file_name):
                 
     data = []
 
-    with open(input_file_name, 'rb') as f:
+    try:
+        with open(input_file_name, 'rb') as f:
+            
+            reader = csv.reader(f)
         
-        reader = csv.reader(f)
-    
-        try:
             for row in reader:
                 data.append(row)
         
-        except csv.Error:
-            print "ERROR: reading file %s" % input_file_name
+    except csv.Error:
+        print "ERROR: reading file %s" % input_file_name
+    except IOError as ioe:
+        print "ERROR: reading file %s" % input_file_name
             
     return data  
 
@@ -64,17 +66,20 @@ def main(index):
     local_pro_data = read_input_file(pro_file_name)
     
     pre_file_name = PRE_FILE_NAME_PREFIX + index + INPUT_FILE_NAME_EXT    
-    local_pre_data = read_input_file(pre_file_name)    
+    local_pre_data = read_input_file(pre_file_name)   
     
-    # Do scraping.
-    scr = KScraping(index)
-
-    scr.do_scraping()
-
-    # Compose data.
-    compdat = ComposeData(scr, local_index_data, local_pro_data, local_pre_data)
+    if len(local_index_data) > 0 and len(local_pro_data) and \
+        len(local_pre_data) > 0:
     
-    compdat.compose()
+        # Do scraping.
+        scr = KScraping(index)
+    
+        scr.do_scraping()
+    
+        # Compose data.
+        compdat = ComposeData(scr, local_index_data, local_pro_data, local_pre_data)
+        
+        compdat.compose()
         
     print "Program finished."
     
