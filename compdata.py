@@ -113,7 +113,7 @@ class ComposeData(object):
                 name_vi_data = self._scr.get_data_from_b1(self._compdata[i][NAME_VI_COL], False)
             else:
                 name_lo_data = self._scr.get_data_from_a2(self._compdata[i][NAME_LO_COL])
-                name_vi_data = self._scr.get_data_from_a2(self._compdata[i][NAME_VI_COL], False)               
+                name_vi_data = self._scr.get_data_from_a2(self._compdata[i][NAME_VI_COL], False)
                 
             for k in range(NAME_DATA_LEN):
                 self._compdata[i][mat_offset + k] = int(name_lo_data[k])
