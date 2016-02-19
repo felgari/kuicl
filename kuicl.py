@@ -39,7 +39,11 @@ def read_input_file(input_file_name):
             reader = csv.reader(f)
         
             for row in reader:
-                data.append(row)
+                if row[0].isdigit():
+                    data.append(row)
+                else:
+                    print "Ignoring line in file %s, maybe a header: %s" % \
+                        (input_file_name, row)
         
     except csv.Error:
         print "ERROR: reading file %s" % input_file_name
