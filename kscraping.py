@@ -300,6 +300,25 @@ class KScraping(object):
     def a2_data(self):    
         return self._a2_data  
     
+    def _save_scraping_data(self):
+        
+        out_file_name = SCRAPPED_DATA_FILE_PREFIX + self._index + \
+            SCRAPPED_DATA_FILE_EXT
+        
+        f = open(out_file_name,'w')
+        
+        f.write("self._lm_data = %s\n\n" % str(self._lm_data))
+        f.write("self._ve_data = %s\n\n" % str(self._ve_data))
+        f.write("self._qu_data = %s\n\n" % str(self._qu_data))
+        f.write("self._q1_data = %s\n\n" % str(self._q1_data))
+        f.write("self._b1_data = %s\n\n" % str(self._b1_data))
+        f.write("self._a2_data = %s\n" % str(self._a2_data))
+        
+        f.close()   
+        
+        print "Data scrapped saved in: %s" % out_file_name     
+
+    
     # ------------------------------------- Public functions.    
     def do_scraping(self):
         """Do all the scraping.
@@ -316,3 +335,5 @@ class KScraping(object):
         self._b1_data = self._cl_scraping(CL_B1_URL, B1_SIZE)
 
         self._a2_data = self._cl_scraping(CL_A2_URL, A2_SIZE)
+        
+        self._save_scraping_data()
