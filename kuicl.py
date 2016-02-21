@@ -62,6 +62,11 @@ def main(index):
     
     print "Let's go ..."
     
+    # Do scraping.
+    scr = KScraping(index)
+
+    scr.scrap_pre_data()    
+    
     # Read local data.
     local_index_file_name = INPUT_FILE_NAME_PREFIX + index + INPUT_FILE_NAME_EXT
     local_index_data = read_input_file(local_index_file_name)
@@ -74,11 +79,8 @@ def main(index):
     
     if len(local_index_data) > 0 and len(local_pro_data) and \
         len(local_pre_data) > 0:
-    
-        # Do scraping.
-        scr = KScraping(index)
-    
-        scr.do_scraping()
+        
+        scr.scrap_post_data()
     
         # Compose data.
         compdat = ComposeData(scr, local_index_data, local_pro_data, local_pre_data)

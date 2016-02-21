@@ -88,6 +88,53 @@ class KScraping(object):
                 
         return bsObj 
     
+    # ------------------------------------- Re scraping.        
+    def _process_re_page(self, bsObj):
+
+        data = []
+        
+        for cobj in bsObj.findAll(RE_COBJ, RE_LINE):
+            for eobj in cobj.findAll(RE_EOBJ, RE_SECOND): 
+                data = append(eobj.get_text().strip()) 
+            for eobj in cobj.findAll(RE_EOBJ, RE_FIRST): 
+                data = append(eobj.get_text().strip())  
+                
+            marcador = True
+            for eobj in cobj.findAll(RE_EOBJ, RE_SCO):
+                if marcador: 
+                    data = append(eobj.get_text().strip())
+                    marcador = False
+                else:
+                    data = append(eobj.get_text().strip())
+                
+            for eobj in cobj.findAll(RE_EOBJ, RE_VAL): 
+                txt = eobj.get_text().strip()
+                if len(txt) > 0 and txt[-1] == "'":
+                    plus = -1
+                    i = len(txt) - 2
+                    while ( txt[i].isdigit() or txt[i] == RE_DELIM) and i >= 0:
+                        if txt[i] == RE_DELIM:
+                            plus = i
+                        i -= 1
+                    z = 0
+                    if plus > 0:
+                        x = int(txt[i:plus])
+                        y = int(txt[plus+1:-1])
+                        z =  x + y
+                    else:
+                        z = int(txt[i:-1])
+                    data.append(z)    
+    
+    def _re_scraping(self):
+        
+        url = RES_URL + index
+        
+        req = self._prepare_request(JO_URL)
+    
+        bsObj = self._check_url(VE_URL, req)
+        
+        self._process_ve_page(bsObj)    
+    
     # ------------------------------------- LM scraping.    
     def _process_lm_page(self, bsObj):
         
@@ -95,15 +142,15 @@ class KScraping(object):
         j = 0
         n = 0
         
-        for table in bsObj.findAll("table"):
-            for td_center in table.findAll("td", LM_DICT):        
+        for cobj in bsObj.findAll(LM_COBJ):
+            for eobj in cobj.findAll(LM_EOBJ, LM_DICT):        
                     
                 if i == NUM_ROWS:
                     return 
                 
                 elif n >= LM_FIRST_COL and n <= LM_LAST_COL:
     
-                    self._lm_data[i][j] = int(td_center.get_text().strip())
+                    self._lm_data[i][j] = int(eobj.get_text().strip())
                     
                     j += 1
                     if j == NUM_COLS:
@@ -126,9 +173,9 @@ class KScraping(object):
         i = 0
         j = 0    
         
-        for div in bsObj.findAll("div", VE_DICT):
-            for div2 in div.findAll("div"):
-                txt = div2.get_text()
+        for cobj in bsObj.findAll(VE_COBJ, VE_DICT):
+            for eobj in cobj.findAll(VE_EOBJ):
+                txt = eobj.get_text()
                 
                 self._ve_data[i][j] = int(txt[:len(txt) - 1])
                 
@@ -152,14 +199,14 @@ class KScraping(object):
         j = 0   
         n = 0 
         
-        for td in bsObj.findAll("td", QU_DICT):
+        for cobj in bsObj.findAll(QU_COBJ, QU_DICT):
             
             if i == NUM_ROWS - 1:
                 return
             
             elif n >= QU_FIRST_COL and n <= QU_LAST_COL:
     
-                self._qu_data[i][j] = int(td.get_text())
+                self._qu_data[i][j] = int(cobj.get_text())
                 
                 j += 1
                 if j == NUM_COLS:
@@ -179,7 +226,7 @@ class KScraping(object):
     # ------------------------------------- Q1 scraping.
     def _process_q1_page(self, bsObj):
         
-        json_txt = str(bsObj.find("body").get_text())
+        json_txt = str(bsObj.find(Q1_COBJ).get_text())
         
         json_data = json.loads(json_txt)
         
@@ -188,7 +235,7 @@ class KScraping(object):
             
             self._q1_data[i][0] = int(el[FIRST_FIELD])
             self._q1_data[i][1] = int(el[SECOND_FIELD])
-            self._q1_data[i][2] = int(el[THIRD_FIELD])             
+            self._q1_data[i][2] = int(el[THIRD_FIELD])                       
     
     def _q1_scraping(self):
         
@@ -202,12 +249,12 @@ class KScraping(object):
         self._process_q1_page(bsObj)    
     
     # ------------------------------------- CL scraping.
-    def _fill_cl_data(self, data, index, size, bsObj, td_class):
+    def _fill_cl_data(self, data, index, size, bsObj, cobj_data):
         
         temp_lst = []
         
-        for td in bsObj.findAll("td", td_class):        
-            temp_lst.append(td.get_text())  
+        for cobj in bsObj.findAll(CL_COBJ, cobj_data):        
+            temp_lst.append(cobj.get_text())  
             
         for i in range(size):
             data[i][index] = int(temp_lst[i])                  
@@ -218,8 +265,8 @@ class KScraping(object):
         
         temp_lst = []        
         
-        for td in bsObj.findAll("td", CL_EQ_DICT):        
-            temp_lst.append(td.get_text()) 
+        for cobj in bsObj.findAll(CL_COBJ, CL_EQ_DICT):        
+            temp_lst.append(cobj.get_text()) 
             
         for i in range(size):
             try:
@@ -227,8 +274,8 @@ class KScraping(object):
             except KeyError as ke:
                 print "ERROR: %s" % ke                  
            
-        for i in range(len(CL_TD_CLASSES)):            
-            self._fill_cl_data(data, i + 1, size, bsObj, CL_TD_CLASSES[i])                                     
+        for i in range(len(CL_ELEMENTS)):            
+            self._fill_cl_data(data, i + 1, size, bsObj, CL_ELEMENTS[i])                                     
             
         return data            
     
@@ -319,9 +366,17 @@ class KScraping(object):
         print "Data scrapped saved in: %s" % out_file_name     
 
     
-    # ------------------------------------- Public functions.    
-    def do_scraping(self):
-        """Do all the scraping.
+    # ------------------------------------- Public functions.  
+    def scrap_pre_data(self):
+        """Scrapping prior data.
+        """
+        
+        self._b1_data = self._cl_scraping(CL_B1_URL, B1_SIZE)
+
+        self._a2_data = self._cl_scraping(CL_A2_URL, A2_SIZE)
+        
+    def scrap_post_data(self):
+        """Scrapping posterior data.
         """
 
         self._lm_scraping()
@@ -331,9 +386,6 @@ class KScraping(object):
         self._qu_scraping()
 
         self._q1_scraping()
-
-        self._b1_data = self._cl_scraping(CL_B1_URL, B1_SIZE)
-
-        self._a2_data = self._cl_scraping(CL_A2_URL, A2_SIZE)
         
+        # As a final step, save all the data scrapped.
         self._save_scraping_data()
