@@ -21,6 +21,7 @@
 import requests
 import urllib2
 from bs4 import BeautifulSoup
+import unicodedata
 import json
 from ctes import *
 
@@ -28,7 +29,7 @@ class KScraping(object):
     """Scraping on some web pages.
     """
     
-    def __init__(self, index):
+    def __init__(self):
         """Constructor.
         
         Args:
@@ -36,7 +37,13 @@ class KScraping(object):
                         
         """    
         
-        self._index = index
+        self._index = ''
+        
+        self._k_data = []
+        
+        self._b1_data = []
+    
+        self._a2_data = []          
         
         self._lm_data = [[0 for _ in range(NUM_COLS)] for _ in range(NUM_ROWS)]
     
@@ -44,11 +51,7 @@ class KScraping(object):
     
         self._qu_data = [[0 for _ in range(NUM_COLS)] for _ in range(NUM_ROWS)]
     
-        self._q1_data = [[0 for _ in range(NUM_COLS)] for _ in range(NUM_ROWS)]
-    
-        self._b1_data = []
-    
-        self._a2_data = []    
+        self._q1_data = [[0 for _ in range(NUM_COLS)] for _ in range(NUM_ROWS)]  
     
     # ------------------------------------- Common functions.
     def _prepare_request(self, url):
@@ -87,6 +90,74 @@ class KScraping(object):
                 print(ae)
                 
         return bsObj 
+    
+    # ------------------------------------- K scraping.        
+    def _process_k_page(self, bsObj):
+        
+        success = True
+        
+        tit = ''
+        
+        order = []
+        first = []
+        second = []
+        data = []
+        
+        for cobj in bsObj.findAll(K_COBJ_1, K_COBJ_1_DICT):
+            txt = cobj.find(K_EOBJ_1, K_EOBJ_1_NAME).get_text().strip()
+            title = unicodedata.normalize('NFKD', txt).encode('ascii','ignore')        
+            pos_ini = title.find(K_TITLE_DELIM_1)
+            pos_end = title.find(K_TITLE_DELIM_2)
+            self._index = title[pos_ini + 1:pos_end]
+            break
+        
+        for cobj in bsObj.findAll(K_COBJ_2, K_COBJ_2_DICT):
+            txt = cobj.find(K_EOBJ_2, K_EOBJ_2_NAME).get_text().strip()
+            txt_norm = unicodedata.normalize('NFKD', txt).encode('ascii','ignore')
+            txt_splt = txt_norm.split(K_DELIM)
+            order = txt_splt
+            
+            txt = cobj.find(K_EOBJ_3, K_EOBJ_3_NAME).get_text().strip()
+            txt_norm = unicodedata.normalize('NFKD', txt).encode('ascii','ignore')
+            txt_splt = txt_norm.split(K_DELIM)
+            for t in txt_splt:
+                pos = t.find('-')        
+                first.append(t[:pos])
+                second.append(t[pos+1:])     
+            
+        if len(order) == len(first) and len(first) == len(second):
+            for i in range(len(order)):
+                type_el = TYPE_1_COL
+                try:
+                    first_name = K_B1_STR_CONVERT[first[i]]
+                    second_name = K_B1_STR_CONVERT[second[i]]
+                except KeyError as _:
+                    type_el = TYPE_2_COL
+                    first_name = K_A2_STR_CONVERT[first[i]]
+                    second_name = K_A2_STR_CONVERT[second[i]]
+                    
+                data.append([order[i], type_el, first_name, second_name])
+        else:
+            print "ERROR reading K, data not paired."       
+            success = False
+        
+        # Save data to a file.
+        f = open(K_FILE_NAME_PREFIX + tit + INPUT_FILE_NAME_EXT,'w')
+        
+        for d in data:
+            f.write("%s,%s,%s,%s\n" % (d[0], d[1], d[2], d[3]))
+        
+        f.close()       
+            
+        return success  
+    
+    def _k_scraping(self):
+    
+        req = self._prepare_request(K_URL)
+    
+        bsObj = self._check_url(K_URL, req)
+        
+        self._process_k_page(bsObj)
     
     # ------------------------------------- Re scraping.        
     def _process_re_page(self, bsObj):
@@ -347,6 +418,10 @@ class KScraping(object):
     def a2_data(self):    
         return self._a2_data  
     
+    def _save_k_data(self):
+        
+        pass
+    
     def _save_scraping_data(self):
         
         out_file_name = SCRAPPED_DATA_FILE_PREFIX + self._index + \
@@ -368,15 +443,17 @@ class KScraping(object):
     
     # ------------------------------------- Public functions.  
     def scrap_pre_data(self):
-        """Scrapping prior data.
+        """Scraping prior data.
         """
+        
+        self._b1_data = self._k_scraping()
         
         self._b1_data = self._cl_scraping(CL_B1_URL, B1_SIZE)
 
         self._a2_data = self._cl_scraping(CL_A2_URL, A2_SIZE)
         
     def scrap_post_data(self):
-        """Scrapping posterior data.
+        """Scraping posterior data.
         """
 
         self._lm_scraping()

@@ -52,29 +52,25 @@ def read_input_file(input_file_name):
             
     return data  
 
-def main(index):
+def main():
     """Main function.
-    
-    Args:
-        index: Index used for the scraping.
-
     """    
     
     print "Let's go ..."
     
     # Do scraping.
-    scr = KScraping(index)
+    scr = KScraping()
 
     scr.scrap_pre_data()    
     
     # Read local data.
-    local_index_file_name = INPUT_FILE_NAME_PREFIX + index + INPUT_FILE_NAME_EXT
+    local_index_file_name = K_FILE_NAME_PREFIX + scr.index + INPUT_FILE_NAME_EXT
     local_index_data = read_input_file(local_index_file_name)
     
-    pro_file_name = PRO_FILE_NAME_PREFIX + index + INPUT_FILE_NAME_EXT
+    pro_file_name = PRO_FILE_NAME_PREFIX + scr.index + INPUT_FILE_NAME_EXT
     local_pro_data = read_input_file(pro_file_name)
     
-    pre_file_name = PRE_FILE_NAME_PREFIX + index + INPUT_FILE_NAME_EXT    
+    pre_file_name = PRE_FILE_NAME_PREFIX + scr.index + INPUT_FILE_NAME_EXT    
     local_pre_data = read_input_file(pre_file_name)   
     
     if len(local_index_data) > 0 and len(local_pro_data) and \
@@ -94,8 +90,4 @@ def main(index):
 # Where all begins ...
 if __name__ == "__main__":
     
-    if len(sys.argv) == NUM_ARGS:
-        sys.exit(main(sys.argv[1]))
-    else:
-        print "ERROR: Wrong number of parameters. Use: %s index" % \
-        sys.argv[0]   
+    sys.exit(main())
