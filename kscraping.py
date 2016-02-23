@@ -29,21 +29,17 @@ class KScraping(object):
     """Scraping on some web pages.
     """
     
-    def __init__(self):
-        """Constructor.
-        
-        Args:
-            index: Index used for the scraping.
-                        
+    def __init__(self, index):
+        """Constructor.                        
         """    
         
-        self._index = ''
+        self._index = index
         
         self._k_data = []
         
         self._b1_data = []
     
-        self._a2_data = []          
+        self._a2_data = []         
         
         self._lm_data = [[0 for _ in range(NUM_COLS)] for _ in range(NUM_ROWS)]
     
@@ -51,7 +47,11 @@ class KScraping(object):
     
         self._qu_data = [[0 for _ in range(NUM_COLS)] for _ in range(NUM_ROWS)]
     
-        self._q1_data = [[0 for _ in range(NUM_COLS)] for _ in range(NUM_ROWS)]  
+        self._q1_data = [[0 for _ in range(NUM_COLS)] for _ in range(NUM_ROWS)]
+        
+        self._pre_data = False
+        
+        self._post_data = False  
     
     # ------------------------------------- Common functions.
     def _prepare_request(self, url):
@@ -416,11 +416,19 @@ class KScraping(object):
     
     @property
     def a2_data(self):    
-        return self._a2_data  
+        return self._a2_data
     
-    def _save_k_data(self):
-        
-        pass
+    @property
+    def k_data(self):    
+        return self._k_data 
+    
+    @property
+    def pre_data_ok(self):
+        return self._pre_data
+    
+    @property
+    def post_data_ok(self):
+        return self._post_data    
     
     def _save_scraping_data(self):
         
@@ -446,11 +454,15 @@ class KScraping(object):
         """Scraping prior data.
         """
         
-        self._b1_data = self._k_scraping()
+        self._k_data = self._k_scraping()
         
         self._b1_data = self._cl_scraping(CL_B1_URL, B1_SIZE)
 
         self._a2_data = self._cl_scraping(CL_A2_URL, A2_SIZE)
+        
+        if self._k_data == NUM_ROWS and self._b1_data == B1_SIZE and \
+            self._a2_data == A2_SIZE:        
+            self._pre_data = True
         
     def scrap_post_data(self):
         """Scraping posterior data.
@@ -466,3 +478,5 @@ class KScraping(object):
         
         # As a final step, save all the data scrapped.
         self._save_scraping_data()
+        
+        self._post_data = True        
