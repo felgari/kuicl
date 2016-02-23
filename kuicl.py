@@ -24,7 +24,9 @@ import csv
 from ctes import *
 from kscraping import *
 from compdata import *
+from propre import *
     
+DEFAULT_INDEX = 0
 NUM_ARGS = 2
 
 def read_input_file(input_file_name):
@@ -47,41 +49,72 @@ def read_input_file(input_file_name):
         
     except csv.Error:
         print "ERROR: reading file %s" % input_file_name
-    except IOError as ioe:
+    except IOError:
         print "ERROR: reading file %s" % input_file_name
             
-    return data  
+    return data
 
-def main():
+
+def get_own_data(scr):
+    """Get own data. This data could be generated from some data already 
+    scrapped or could be read from local files.    
+    """
+    
+    index_data = []
+    pro_data = []
+    pre_data = []
+    
+    # Try to generate the data.
+    if scr.pre_data_ok:
+        
+        propre = ProPre(scr.k_data, scr.b1_data, scr.a2_data)
+        
+        index_data = propre.index_data
+        pro_data = propre.pro_data
+        pre_data = propre.pre_data
+        
+    if len(index_data) == 0 or len(pro_data) == 0 or len(pre_data) == 0:
+        
+        if scr.index > DEFAULT_INDEX:
+            # Read local data.
+            index_file_name = K_FILE_NAME_PREFIX + scr.index + INPUT_FILE_NAME_EXT
+            index_data = read_input_file(index_file_name)
+            
+            pro_file_name = PRO_FILE_NAME_PREFIX + scr.index + INPUT_FILE_NAME_EXT
+            pro_data = read_input_file(pro_file_name)
+            
+            pre_file_name = PRE_FILE_NAME_PREFIX + scr.index + INPUT_FILE_NAME_EXT
+            pre_data = read_input_file(pre_file_name)
+        else:
+            print "ERROR: No index as argument to get local data."
+    
+    return index_data, pro_data, pre_data
+
+def main(index):
     """Main function.
     """    
     
     print "Let's go ..."
     
-    # Do scraping.
-    scr = KScraping()
+    # Do some scraping.
+    scr = KScraping(index)
 
     scr.scrap_pre_data()    
     
-    # Read local data.
-    local_index_file_name = K_FILE_NAME_PREFIX + scr.index + INPUT_FILE_NAME_EXT
-    local_index_data = read_input_file(local_index_file_name)
+    index_data, pro_data, pre_data = get_own_data(scr)   
     
-    pro_file_name = PRO_FILE_NAME_PREFIX + scr.index + INPUT_FILE_NAME_EXT
-    local_pro_data = read_input_file(pro_file_name)
-    
-    pre_file_name = PRE_FILE_NAME_PREFIX + scr.index + INPUT_FILE_NAME_EXT    
-    local_pre_data = read_input_file(pre_file_name)   
-    
-    if len(local_index_data) > 0 and len(local_pro_data) and \
-        len(local_pre_data) > 0:
+    if len(index_data) > 0 and len(pro_data) and \
+        len(pre_data) > 0:
         
+        # Do more scraping.
         scr.scrap_post_data()
     
         # Compose data.
-        compdat = ComposeData(scr, local_index_data, local_pro_data, local_pre_data)
+        compdat = ComposeData(scr, index_data, pro_data, pre_data)
         
         compdat.compose()
+    else:
+        print "ERROR: No local data."
         
     print "Program finished."
     
@@ -90,4 +123,9 @@ def main():
 # Where all begins ...
 if __name__ == "__main__":
     
-    sys.exit(main())
+    index = DEFAULT_INDEX
+    
+    if len(sys.argv) == NUM_ARGS:
+        index = sys.argv[1]
+    
+    sys.exit(main(index))
