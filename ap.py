@@ -214,15 +214,10 @@ def write_data(ap_data, comp_ap_data):
         
         for i in range(len(ap_data)):
             row = [ ap_data[i], comp_ap_data[i] ]
-            csvwriter.writerow(row)    
-
-def main():
-    """Main function.
-
-    """    
-
-    data = read_data()
-                
+            csvwriter.writerow(row)   
+            
+def calculate_ap(data):
+    
     ap_data = ap(data)
     
     print ap_data
@@ -231,7 +226,16 @@ def main():
     
     print comp_ap_data
     
-    write_data(ap_data, comp_ap_data)
+    write_data(ap_data, comp_ap_data)    
+     
+def main():
+    """Main function.
+
+    """    
+
+    data = read_data()
+                
+    calculate_ap(data)
         
     print "Program finished."
     
