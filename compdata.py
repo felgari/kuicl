@@ -31,6 +31,7 @@ class ComposeData(object):
         self._index_data = index_data
         self._pro_data = pro_data
         self._pre_data = pre_data
+        self._final_index = 0
   
         self._compdata = \
             [[0 for _ in range(TOTAL_NUM_COLS)] for _ in range(NUM_ROWS)]
@@ -193,6 +194,8 @@ class ComposeData(object):
             self._compdata[i][st_offset + 1] = round(p_2_final)  
             self._compdata[i][st_offset + 2] = round(p_3_final) 
             
+            self._final_index = st_offset
+            
             # Set the values over the minimum.
             p_dict = { MAX_IS_FIRST : p_1_final, \
                       MAX_IS_SECOND : p_2_final, \
@@ -221,6 +224,9 @@ class ComposeData(object):
             for i in range(len(self._compdata)):
                 csvwriter.writerow(self._compdata[i])
 
+    def get_final_data(self):
+        
+        return self._compdata[:][self._final_index:]
                          
     def compose(self):
         
