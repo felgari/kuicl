@@ -25,6 +25,7 @@ from ctes import *
 from kscraping import *
 from compdata import *
 from propre import *
+from ap import *
     
 DEFAULT_INDEX = 0
 NUM_ARGS = 2
@@ -113,6 +114,9 @@ def main(index):
         compdat = ComposeData(scr, index_data, pro_data, pre_data)
         
         compdat.compose()
+        
+        # Finally calculate ap.
+        ap.calculate_ap(compdat.get_final_data())
     else:
         print "ERROR: No local data."
         
