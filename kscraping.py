@@ -53,6 +53,90 @@ class KScraping(object):
         self._pre_data = False
         
         self._post_data = False  
+        
+    # ------------------------------------- Read scrapped data from file.
+    def _extract_list_text(self, txt, num):
+        
+        the_list = []
+        
+        pos = txt.find(SCR_TXT_DELIM)
+        txt_red = txt[pos + 1:].strip()
+        
+        lst_from_txt = txt_red.translate(None, "[],\'").split()
+    
+        n = 0
+        new_list = []
+        for elt in lst_from_txt:
+            new_list.append(elt)
+    
+            n += 1
+            
+            if n == num:
+                the_list.append(new_list)
+                new_list = []
+                n = 0
+        
+        return the_list
+    
+    def _read_scr_data(self):
+        
+        lines = []
+        b1_data = []
+        a2_data = []         
+        lm_data = []
+        ve_data = []
+        qu_data = []
+        q1_data = []
+        
+        file_name = SCRAPPED_DATA_FILE_PREFIX + self._index + \
+            SCRAPPED_DATA_FILE_EXT  
+        
+        try:
+            with open(file_name, "r") as f:
+                for l in f:
+                    
+                    # Process text line.        
+                    l_txt = l[:-1].strip()
+                    
+                    if len(l_txt) > 0:                    
+                        if l_txt.find(LM_TEXT) > 0:
+                            self._lm_data = \
+                                self._extract_list_text(l_txt, NUM_COLS_LM)
+                            print "Read %dx%d from file for LM" % \
+                                (len(self._lm_data), len(self._lm_data[0]))
+                                
+                        elif l_txt.find(VE_TEXT) > 0:
+                            self._ve_data = \
+                                self._extract_list_text(l_txt, NUM_COLS_VE)
+                            print "Read %dx%d from file for VE" % \
+                                (len(self._ve_data), len(self._ve_data[0]))
+                                
+                        elif l_txt.find(QU_TEXT) > 0:
+                            self._qu_data = \
+                                self._extract_list_text(l_txt, NUM_COLS_QU)
+                            print "Read %dx%d from file for QU" % \
+                                (len(self._qu_data), len(self._qu_data[0]))
+                                
+                        elif l_txt.find(Q1_TEXT) > 0:
+                            self._q1_data = \
+                                self._extract_list_text(l_txt, NUM_COLS_Q1)
+                            print "Read %dx%d from file for Q1" % \
+                                (len(self._q1_data), len(self._q1_data[0]))
+                            
+                        elif l_txt.find(B1_TEXT) > 0:
+                            self._b1_data = \
+                                self._extract_list_text(l_txt, NUM_COLS_CL)
+                            print "Read %dx%d from file for B1" % \
+                                (len(self._b1_data), len(self._b1_data[0]))
+                            
+                        elif l_txt.find(A2_TEXT) > 0:
+                            self._a2_data = \
+                                self._extract_list_text(l_txt, NUM_COLS_CL)
+                            print "Read %dx%d from file for A2" % \
+                                (len(self._a2_data), len(self._a2_data[0]))
+            
+        except IOError as ioe:
+             print "Not found file: '%s'" % file_name      
     
     # ------------------------------------- Common functions.
     def _prepare_request(self, url):
@@ -145,7 +229,8 @@ class KScraping(object):
             
         out_file_name = K_FILE_NAME_PREFIX + tit + INPUT_FILE_NAME_EXT
         
-        print "Saving file: %s with %d lines" % (out_file_name, len(data))
+        print "Saving file: %s with %dx%d elements" % \
+            (out_file_name, len(data), len(data[0]))
         
         # Save data to a file.
         f = open(out_file_name,'w')
@@ -249,7 +334,7 @@ class KScraping(object):
         
         self._process_lm_page(bsObj)
         
-        print "Read: %d" % len(self._lm_data)
+        print "Read: %dx%d" % (len(self._lm_data), len(self._lm_data[0]))
         
     # ------------------------------------- VE scraping.        
     def _process_ve_page(self, bsObj):
@@ -276,7 +361,7 @@ class KScraping(object):
         
         self._process_ve_page(bsObj)
         
-        print "Read: %d" % len(self._ve_data)
+        print "Read: %dx%d" % (len(self._ve_data), len(self._ve_data[0]))
 
     # ------------------------------------- QU scraping.
     def _process_qu_page(self, bsObj):
@@ -309,7 +394,7 @@ class KScraping(object):
         
         self._process_qu_page(bsObj)
         
-        print "Read: %d" % len(self._qu_data)
+        print "Read: %dx%d" % (len(self._qu_data), len(self._qu_data[0]))
             
     # ------------------------------------- Q1 scraping.
     def _process_q1_page(self, bsObj):
@@ -334,7 +419,7 @@ class KScraping(object):
     
         bsObj = self._check_url(url, req)
         
-        print "Read: %d" % len(self._q1_data)
+        print "Read: %dx%d" % (len(self._q1_data), len(self._q1_data[0]))
         
         self._process_q1_page(bsObj)    
     
@@ -377,7 +462,7 @@ class KScraping(object):
         
         data = self._process_cl_page(bsObj, size)
         
-        print "Read: %d" % len(data)
+        print "Read: %dx%d" % (len(data), len(data[0]))
         
         return data  
     
@@ -458,12 +543,12 @@ class KScraping(object):
         
         f = open(out_file_name,'w')
         
-        f.write("self._lm_data = %s\n\n" % str(self._lm_data))
-        f.write("self._ve_data = %s\n\n" % str(self._ve_data))
-        f.write("self._qu_data = %s\n\n" % str(self._qu_data))
-        f.write("self._q1_data = %s\n\n" % str(self._q1_data))
-        f.write("self._b1_data = %s\n\n" % str(self._b1_data))
-        f.write("self._a2_data = %s\n" % str(self._a2_data))
+        f.write("%s %s %s\n\n" % (LM_TEXT, SCR_TXT_DELIM, str(self._lm_data)))
+        f.write("%s %s %s\n\n" % (VE_TEXT, SCR_TXT_DELIM, str(self._ve_data)))
+        f.write("%s %s %s\n\n" % (QU_TEXT, SCR_TXT_DELIM, str(self._qu_data)))
+        f.write("%s %s %s\n\n" % (Q1_TEXT, SCR_TXT_DELIM, sstr(self._q1_data)))
+        f.write("%s %s %s\n\n" % (B1_TEXT, SCR_TXT_DELIM, str(self._b1_data)))
+        f.write("%s %s %s\n" % (A2_TEXT, SCR_TXT_DELIM, str(self._a2_data)))
         
         f.close()   
         
@@ -512,11 +597,16 @@ class KScraping(object):
         """Scraping prior data.
         """
         
+        if self._index > DEFAULT_INDEX:
+            self._read_scr_data()
+        
         self._k_data = self._k_scraping()
         
-        self._b1_data = self._cl_scraping(CL_B1_URL, B1_SIZE)
+        if len(self._b1_data) == 0:
+            self._b1_data = self._cl_scraping(CL_B1_URL, B1_SIZE)
 
-        self._a2_data = self._cl_scraping(CL_A2_URL, A2_SIZE)
+        if len(self._a2_data) == 0:
+            self._a2_data = self._cl_scraping(CL_A2_URL, A2_SIZE)
         
         if self._k_data == NUM_ROWS and self._b1_data == B1_SIZE and \
             self._a2_data == A2_SIZE:        
@@ -525,16 +615,27 @@ class KScraping(object):
     def scrap_post_data(self):
         """Scraping posterior data.
         """
+        
+        data_scrapped = False
 
-        self._lm_scraping()
+        if len(self._lm_data) == 0:
+            self._lm_scraping()
+            data_scrapped = True
    
-        self._ve_scraping()
+        if len(self._ve_data) == 0:
+            self._ve_scraping()
+            data_scrapped = True
 
-        self._qu_scraping()
+        if len(self._qu_data) == 0:
+            self._qu_scraping()
+            data_scrapped = True
 
-        self._q1_scraping()
+        if len(self._q1_data) == 0:
+            self._q1_scraping()
+            data_scrapped = True
         
         # As a final step, save all the data scrapped.
-        self._save_scraping_data()
+        if data_scrapped:
+            self._save_scraping_data()
         
         self._post_data = True        
