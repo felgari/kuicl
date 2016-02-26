@@ -226,7 +226,12 @@ class ComposeData(object):
 
     def get_final_data(self):
         
-        return self._compdata[:][self._final_index:]
+        final_data = []
+        
+        for c in self._compdata:
+            final_data.append(c[self._final_index:])
+        
+        return final_data
                          
     def compose(self):
         
