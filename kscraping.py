@@ -23,6 +23,7 @@ import urllib2
 from bs4 import BeautifulSoup
 import unicodedata
 import json
+import os
 from ctes import *
 
 class KScraping(object):
@@ -97,6 +98,7 @@ class KScraping(object):
         success = True
         
         tit = ''
+        temp_index = ''
         
         order = []
         first = []
@@ -108,7 +110,7 @@ class KScraping(object):
             title = unicodedata.normalize('NFKD', txt).encode('ascii','ignore')        
             pos_ini = title.find(K_TITLE_DELIM_1)
             pos_end = title.find(K_TITLE_DELIM_2)
-            self._index = title[pos_ini + 1:pos_end]
+            temp_index = title[pos_ini + 1:pos_end]
             break
         
         for cobj in bsObj.findAll(K_COBJ_2, K_COBJ_2_DICT):
@@ -140,14 +142,21 @@ class KScraping(object):
         else:
             print "ERROR reading K, data not paired."       
             success = False
+            
+        out_file_name = K_FILE_NAME_PREFIX + tit + INPUT_FILE_NAME_EXT
+        
+        print "Saving file: %s with %d lines" % (out_file_name, len(data))
         
         # Save data to a file.
-        f = open(K_FILE_NAME_PREFIX + tit + INPUT_FILE_NAME_EXT,'w')
+        f = open(out_file_name,'w')
         
         for d in data:
             f.write("%s,%s,%s,%s\n" % (d[0], d[1], d[2], d[3]))
         
-        f.close()       
+        f.close()   
+        
+        # If everything is ok, save also index.
+        self._index = temp_index    
             
         return success  
     
@@ -157,7 +166,10 @@ class KScraping(object):
     
         bsObj = self._check_url(K_URL, req)
         
-        self._process_k_page(bsObj)
+        try:
+            self._process_k_page(bsObj)
+        except KeyError as ke:
+            print "ERROR in k: %s" % ke
     
     # ------------------------------------- Re scraping.        
     def _process_re_page(self, bsObj):
@@ -166,17 +178,17 @@ class KScraping(object):
         
         for cobj in bsObj.findAll(RE_COBJ, RE_LINE):
             for eobj in cobj.findAll(RE_EOBJ, RE_SECOND): 
-                data = append(eobj.get_text().strip()) 
+                data.append(eobj.get_text().strip()) 
             for eobj in cobj.findAll(RE_EOBJ, RE_FIRST): 
-                data = append(eobj.get_text().strip())  
+                data.append(eobj.get_text().strip())  
                 
             marcador = True
             for eobj in cobj.findAll(RE_EOBJ, RE_SCO):
                 if marcador: 
-                    data = append(eobj.get_text().strip())
+                    data.append(eobj.get_text().strip())
                     marcador = False
                 else:
-                    data = append(eobj.get_text().strip())
+                    data.append(eobj.get_text().strip())
                 
             for eobj in cobj.findAll(RE_EOBJ, RE_VAL): 
                 txt = eobj.get_text().strip()
@@ -195,16 +207,15 @@ class KScraping(object):
                     else:
                         z = int(txt[i:-1])
                     data.append(z)    
+        return data
     
-    def _re_scraping(self):
+    def _re_scraping(self, url):
         
-        url = RES_URL + index
-        
-        req = self._prepare_request(JO_URL)
+        req = self._prepare_request(url)
     
-        bsObj = self._check_url(VE_URL, req)
+        bsObj = self._check_url(url, req)
         
-        self._process_ve_page(bsObj)    
+        return self._process_re_page(bsObj)    
     
     # ------------------------------------- LM scraping.    
     def _process_lm_page(self, bsObj):
@@ -228,7 +239,7 @@ class KScraping(object):
                         i += 1
                         j = 0                   
                      
-                n = (n + 1) % LM_TD_ROW_SIZE
+                n = (n + 1) % LM_TD_ROW_SIZE        
     
     def _lm_scraping(self):
         
@@ -237,6 +248,8 @@ class KScraping(object):
         bsObj = self._check_url(LM_URL, req)
         
         self._process_lm_page(bsObj)
+        
+        print "Read: %d" % len(self._lm_data)
         
     # ------------------------------------- VE scraping.        
     def _process_ve_page(self, bsObj):
@@ -262,6 +275,8 @@ class KScraping(object):
         bsObj = self._check_url(VE_URL, req)
         
         self._process_ve_page(bsObj)
+        
+        print "Read: %d" % len(self._ve_data)
 
     # ------------------------------------- QU scraping.
     def _process_qu_page(self, bsObj):
@@ -284,7 +299,7 @@ class KScraping(object):
                     i += 1
                     j = 0                   
                  
-            n = (n + 1) % QU_TD_ROW_SIZE
+            n = (n + 1) % QU_TD_ROW_SIZE 
     
     def _qu_scraping(self):
         
@@ -293,6 +308,8 @@ class KScraping(object):
         bsObj = self._check_url(QU_URL, req)
         
         self._process_qu_page(bsObj)
+        
+        print "Read: %d" % len(self._qu_data)
             
     # ------------------------------------- Q1 scraping.
     def _process_q1_page(self, bsObj):
@@ -306,7 +323,7 @@ class KScraping(object):
             
             self._q1_data[i][0] = int(el[FIRST_FIELD])
             self._q1_data[i][1] = int(el[SECOND_FIELD])
-            self._q1_data[i][2] = int(el[THIRD_FIELD])                       
+            self._q1_data[i][2] = int(el[THIRD_FIELD])                        
     
     def _q1_scraping(self):
         
@@ -316,6 +333,8 @@ class KScraping(object):
         req = self._prepare_request(url)
     
         bsObj = self._check_url(url, req)
+        
+        print "Read: %d" % len(self._q1_data)
         
         self._process_q1_page(bsObj)    
     
@@ -346,7 +365,7 @@ class KScraping(object):
                 print "ERROR: %s" % ke                  
            
         for i in range(len(CL_ELEMENTS)):            
-            self._fill_cl_data(data, i + 1, size, bsObj, CL_ELEMENTS[i])                                     
+            self._fill_cl_data(data, i + 1, size, bsObj, CL_ELEMENTS[i]) 
             
         return data            
     
@@ -357,6 +376,8 @@ class KScraping(object):
         bsObj = self._check_url(url, req)
         
         data = self._process_cl_page(bsObj, size)
+        
+        print "Read: %d" % len(data)
         
         return data  
     
@@ -448,8 +469,45 @@ class KScraping(object):
         
         print "Data scrapped saved in: %s" % out_file_name     
 
+    def _get_res_file_name(self, index):
+        
+        return RES_FILE_PREFIX + index + INPUT_FILE_NAME_EXT
     
-    # ------------------------------------- Public functions.  
+    def _save_res_data(self, file_name, data):
+        
+        f = open(file_name,'w')
+        
+        print data
+        
+        for d in data:
+            f.write("%s\n" % str(d[0]))
+        
+        f.close() 
+        
+    def _scrap_res(self, max_range, file_dir, url_prefix, data_size): 
+        
+        for i in range(max_range):
+            
+            file_name = os.path.join(os.getcwd(), file_dir, \
+                                     self._get_res_file_name(i))
+            
+            if not os.path.exists(file_name):     
+                url = url_prefix + i   
+                data = self._re_scraping(url)
+                
+                # If data could not be get, exit.
+                if len(data) == data_size:                     
+                    self._save_res_data(file_name, data)
+                else:
+                    break                     
+    
+    # ------------------------------------- Public functions. 
+    def scrap_res_data(self):
+        
+        self._scrap_res(MAX_B1, RES_B1_DIR, RE_B1_URL, B1_SIZE / 2)
+        
+        self._scrap_res(MAX_A2, RES_A2_DIR, RE_A2_URL, A2_SIZE / 2)           
+         
     def scrap_pre_data(self):
         """Scraping prior data.
         """
