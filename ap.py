@@ -205,28 +205,26 @@ def complementary(data):
     
     return comp
 
-def write_data(ap_data, comp_ap_data):
+def write_data(ap_data, comp_ap_data, index):
     
-    print "Saving results in: %s" % AP_FILE_NAME_OUT    
+    out_file_name = AP_FILE_PREFIX + index + AP_FILE_EXT
+    
+    print "Saving results in: %s" % out_file_name    
                 
-    with open(AP_FILE_NAME_OUT, "w") as csvfile:
+    with open(out_file_name, "w") as csvfile:
         csvwriter = csv.writer(csvfile, delimiter=CSV_DELIMITER)            
         
         for i in range(len(ap_data)):
             row = [ ap_data[i], comp_ap_data[i] ]
             csvwriter.writerow(row)   
             
-def calculate_ap(data):
+def calculate_ap(data, index = 0):
     
     ap_data = ap(data)
     
-    print ap_data
-    
     comp_ap_data = complementary(ap_data)
     
-    print comp_ap_data
-    
-    write_data(ap_data, comp_ap_data)    
+    write_data(ap_data, comp_ap_data, index)    
      
 def main():
     """Main function.
