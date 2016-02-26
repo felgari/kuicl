@@ -26,8 +26,7 @@ from kscraping import *
 from compdata import *
 from propre import *
 from ap import *
-    
-DEFAULT_INDEX = 0
+
 NUM_ARGS = 2
 
 def read_input_file(input_file_name):
@@ -52,9 +51,10 @@ def read_input_file(input_file_name):
         print "ERROR: reading file %s" % input_file_name
     except IOError:
         print "ERROR: reading file %s" % input_file_name
+        
+    print "Read: %dx%d" % (len(data), len(data[0]))
             
     return data
-
 
 def get_own_data(scr):
     """Get own data. This data could be generated from some data already 
@@ -115,8 +115,12 @@ def main(index):
         
         compdat.compose()
         
+        final_data = compdat.get_final_data()
+        
+        print final_data
+        
         # Finally calculate ap.
-        ap.calculate_ap(compdat.get_final_data())
+        calculate_ap(final_data, index)
     else:
         print "ERROR: No local data."
         
