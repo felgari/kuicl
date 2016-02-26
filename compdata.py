@@ -105,10 +105,10 @@ class ComposeData(object):
                 
             mat_offset = max_sign_offset + NUM_EXT_SOURCES + 1
             
-            # Fill data for each name.
+            # Fill data for each name.   
             name_lo_data = []
-            name_vi_data = []
-                
+            name_vi_data = [] 
+                        
             if self._compdata[i][TYPE_COL] == TYPE_1_COL:
                 name_lo_data = self._scr.get_data_from_b1(self._compdata[i][NAME_LO_COL])
                 name_vi_data = self._scr.get_data_from_b1(self._compdata[i][NAME_VI_COL], False)
