@@ -95,7 +95,7 @@ def main(index):
     """Main function.
     """    
     
-    print "Let's go ..."
+    print "Let's go with index %s ..." % index
     
     # Do some scraping.
     scr = KScraping(index)
@@ -104,7 +104,7 @@ def main(index):
     
     index_data, pro_data, pre_data = get_own_data(scr)   
     
-    if len(index_data) > 0 and len(pro_data) and \
+    if len(index_data) > 0 and len(pro_data) > 0 and \
         len(pre_data) > 0:
         
         # Do more scraping.
@@ -116,8 +116,6 @@ def main(index):
         compdat.compose()
         
         final_data = compdat.get_final_data()
-        
-        print final_data
         
         # Finally calculate ap.
         calculate_ap(final_data, index)
