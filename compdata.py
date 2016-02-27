@@ -53,8 +53,10 @@ class ComposeData(object):
         lm_offset = pre_offset + len(self._pre_data[0])
         ve_offset = lm_offset + len(self._scr.lm_data[0])
         qu_offset = ve_offset + len(self._scr.ve_data[0])
-        q1_offset = qu_offset + len(self._scr.qu_data[0]) 
-        mean_offset = q1_offset + len(self._scr.q1_data[0]) 
+        q1_offset = qu_offset + len(self._scr.qu_data[0])
+        cq_offset = q1_offset + len(self._scr.q1_data[0]) 
+        cqp_offset = cq_offset + len(self._scr.cq_data[0])  
+        mean_offset = cqp_offset + len(self._scr.cqp_data[0]) 
         
         for i in range(NUM_ROWS):
             
@@ -71,6 +73,8 @@ class ComposeData(object):
                 self._compdata[i][j + ve_offset] = self._scr._ve_data[i][j]
                 self._compdata[i][j + qu_offset] = self._scr._qu_data[i][j]
                 self._compdata[i][j + q1_offset] = self._scr._q1_data[i][j]
+                self._compdata[i][j + cq_offset] = self._scr._cq_data[i][j]
+                self._compdata[i][j + cqp_offset] = self._scr._cqp_data[i][j]
                 
                 # Calculate a mean of the data scraped for this column.                
                 val_np_arr = np.array([int(self._pro_data[i][j]), \
@@ -78,7 +82,9 @@ class ComposeData(object):
                                       int(self._scr.lm_data[i][j]), \
                                       int(self._scr._ve_data[i][j]), \
                                       int(self._scr._qu_data[i][j]), \
-                                      int(self._scr._q1_data[i][j])]) 
+                                      int(self._scr._q1_data[i][j]), \
+                                      int(self._scr._cq_data[i][j]), \
+                                      int(self._scr._cqp_data[i][j])]) 
                                  
                 self._compdata[i][j + mean_offset] = np.mean(val_np_arr)
                                 
