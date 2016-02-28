@@ -235,20 +235,20 @@ class KScraping(object):
         if len(order) == len(first) and len(first) == len(second):
             for i in range(len(order)):
                 type_el = TYPE_1_COL
-                try:
+                try:               
                     first_name = K_B1_STR_CONVERT[first[i]]
                     second_name = K_B1_STR_CONVERT[second[i]]
-                except KeyError as _:
+                except KeyError:                
                     type_el = TYPE_2_COL
                     first_name = K_A2_STR_CONVERT[first[i]]
                     second_name = K_A2_STR_CONVERT[second[i]]
-                    
+
                 data.append([order[i], type_el, first_name, second_name])
         else:
             print "ERROR reading K, data not paired."       
             success = False
             
-        out_file_name = K_FILE_NAME_PREFIX + tit + INPUT_FILE_NAME_EXT
+        out_file_name = K_FILE_NAME_PREFIX + temp_index + INPUT_FILE_NAME_EXT
         
         print "Saving file: %s with %dx%d elements" % \
             (out_file_name, len(data), len(data[0]))
