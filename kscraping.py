@@ -648,8 +648,8 @@ class KScraping(object):
             
     def __str__(self):
         
-        return "%d %d %d %d %d %d %d %d %d" % \
-        (len(self._k_data), len(self._lm_data), len(self._ve_data), \
-                        len(self._qu_data), len(self._q1_data), \
-                        len(self._cq_data), len(self._cqp_data), \
-                        len(self._b1_data), len(self._a2_data))        
+        return "%s: %d %d %d %d %d %d %d %d %d" % \
+        (type(self).__name__, len(self._k_data), len(self._lm_data), \
+            len(self._ve_data), len(self._qu_data), len(self._q1_data), \
+            len(self._cq_data), len(self._cqp_data), len(self._b1_data), \
+            len(self._a2_data))        
