@@ -36,8 +36,6 @@ class KScraping(object):
         
         self._index = index
         
-        self._data_read_from_file = False
-        
         self._k_data = []
         
         self._b1_data = []
@@ -55,109 +53,6 @@ class KScraping(object):
         self._cq_data = [[0 for _ in range(NUM_COLS)] for _ in range(NUM_ROWS)]
         
         self._cqp_data = [[0 for _ in range(NUM_COLS)] for _ in range(NUM_ROWS)]
-        
-        self._pre_data = False
-        
-        self._post_data = False  
-        
-    # ------------------------------------- Read scrapped data from file.
-    def _extract_list_text(self, txt, num):
-        
-        the_list = []
-        
-        pos = txt.find(SCR_TXT_DELIM)
-        txt_red = txt[pos + 1:].strip()
-        
-        lst_from_txt = txt_red.translate(None, "[],\'").split()
-    
-        n = 0
-        new_list = []
-        for elt in lst_from_txt:
-            new_list.append(elt)
-    
-            n += 1
-            
-            if n == num:
-                the_list.append(new_list)
-                new_list = []
-                n = 0
-        
-        return the_list
-    
-    def _read_scr_data(self):
-        
-        lines = []
-        b1_data = []
-        a2_data = []         
-        lm_data = []
-        ve_data = []
-        qu_data = []
-        q1_data = []
-        
-        file_name = SCRAPPED_DATA_FILE_PREFIX + self._index + \
-            SCRAPPED_DATA_FILE_EXT  
-        
-        print "Reading data from file: %s" % file_name
-        
-        try:
-            with open(file_name, "r") as f:
-                for l in f:
-                    
-                    # Process text line.        
-                    l_txt = l[:-1].strip()
-                    
-                    if len(l_txt) > 0:                  
-                        if l_txt.find(LM_TEXT) >= 0:
-                            self._lm_data = \
-                                self._extract_list_text(l_txt, NUM_COLS_LM)
-                            print "Read %dx%d from file for LM" % \
-                                (len(self._lm_data), len(self._lm_data[0]))
-                                
-                        elif l_txt.find(VE_TEXT) >= 0:
-                            self._ve_data = \
-                                self._extract_list_text(l_txt, NUM_COLS_VE)
-                            print "Read %dx%d from file for VE" % \
-                                (len(self._ve_data), len(self._ve_data[0]))
-                                
-                        elif l_txt.find(QU_TEXT) >= 0:
-                            self._qu_data = \
-                                self._extract_list_text(l_txt, NUM_COLS_QU)
-                            print "Read %dx%d from file for QU" % \
-                                (len(self._qu_data), len(self._qu_data[0]))
-                                
-                        elif l_txt.find(Q1_TEXT) >= 0:
-                            self._q1_data = \
-                                self._extract_list_text(l_txt, NUM_COLS_Q1)
-                            print "Read %dx%d from file for Q1" % \
-                                (len(self._q1_data), len(self._q1_data[0]))
-                                
-                        elif l_txt.find(CQ_TEXT) >= 0:
-                            self._cq_data = \
-                                self._extract_list_text(l_txt, NUM_COLS_CQ)
-                            print "Read %dx%d from file for CQ" % \
-                                (len(self._cq_data), len(self._cq_data[0]))
-                                
-                        elif l_txt.find(CQP_TEXT) >= 0:
-                            self._cqp_data = \
-                                self._extract_list_text(l_txt, NUM_COLS_CQ)
-                            print "Read %dx%d from file for CQP" % \
-                                (len(self._cqp_data), len(self._cqp_data[0]))
-                            
-                        elif l_txt.find(B1_TEXT) >= 0:
-                            self._b1_data = \
-                                self._extract_list_text(l_txt, NUM_COLS_CL)
-                            print "Read %dx%d from file for B1" % \
-                                (len(self._b1_data), len(self._b1_data[0]))
-                            
-                        elif l_txt.find(A2_TEXT) >= 0:
-                            self._a2_data = \
-                                self._extract_list_text(l_txt, NUM_COLS_CL)
-                            print "Read %dx%d from file for A2" % \
-                                (len(self._a2_data), len(self._a2_data[0]))
-            
-            self._data_read_from_file = True
-        except IOError as ioe:
-            print "Not found file: '%s'" % file_name      
     
     # ------------------------------------- Common functions.
     def _prepare_request(self, url):
@@ -247,6 +142,8 @@ class KScraping(object):
         else:
             print "ERROR reading K, data not paired."       
             success = False
+            
+        self._k_data = data
             
         out_file_name = K_FILE_NAME_PREFIX + temp_index + INPUT_FILE_NAME_EXT
         
@@ -439,7 +336,7 @@ class KScraping(object):
     def _q1_scraping(self):
         
         # The ULR depends on the index received.  
-        url = Q1_URL + self._index
+        url = Q1_URL + self.index
         
         req = self._prepare_request(url)
     
@@ -573,45 +470,78 @@ class KScraping(object):
     def lm_data(self):    
         return self._lm_data
     
+    @lm_data.setter
+    def lm_data(self, data):
+        self._lm_data = data    
+    
     @property
     def ve_data(self):    
         return self._ve_data
+    
+    @ve_data.setter
+    def ve_data(self, data):
+        self._ve_data = data     
     
     @property
     def qu_data(self):    
         return self._qu_data
     
+    @qu_data.setter
+    def qu_data(self, data):
+        self._qu_data = data     
+    
     @property
     def q1_data(self):    
         return self._q1_data
+    
+    @q1_data.setter
+    def q1_data(self, data):
+        self._q1_data = data    
     
     @property
     def cq_data(self):    
         return self._cq_data
     
+    @cq_data.setter
+    def cq_data(self, data):
+        self._cq_data = data        
+    
     @property
     def cqp_data(self):    
-        return self._cqp_data        
+        return self._cqp_data  
+    
+    @cqp_data.setter
+    def cqp_data(self, data):
+        self._cqp_data = data             
     
     @property
     def b1_data(self):    
         return self._b1_data
     
+    @b1_data.setter
+    def b1_data(self, data):
+        self._b1_data = data       
+    
     @property
     def a2_data(self):    
         return self._a2_data
+    
+    @a2_data.setter
+    def a2_data(self, data):
+        self._a2_data = data     
     
     @property
     def k_data(self):    
         return self._k_data 
     
-    @property
-    def pre_data_ok(self):
-        return self._pre_data
+    @k_data.setter
+    def k_data(self, data):
+        self._k_data = data     
     
     @property
-    def post_data_ok(self):
-        return self._post_data    
+    def cl_data_ok(self):
+        return self._k_data == NUM_ROWS and self._b1_data == B1_SIZE and \
+            self._a2_data == A2_SIZE 
     
     def _save_scraping_data(self):
         
@@ -665,21 +595,16 @@ class KScraping(object):
                 else:
                     break                     
     
-    # ------------------------------------- Public functions. 
+    # ------------------------------------- Public functions.    
     def scrap_res_data(self):
         
         self._scrap_res(MAX_B1, RES_B1_DIR, RE_B1_URL, B1_SIZE / 2)
         
         self._scrap_res(MAX_A2, RES_A2_DIR, RE_A2_URL, A2_SIZE / 2)           
          
-    def scrap_pre_data(self):
-        """Scraping prior data.
+    def scrap_cl_data(self):
+        """Scraping CL data.
         """
-        
-        if int(self._index) > DEFAULT_INDEX:
-            self._read_scr_data()
-        
-        self._k_data = self._k_scraping()
         
         if len(self._b1_data) == 0:
             self._b1_data = self._cl_scraping(CL_B1_URL, B1_SIZE)
@@ -687,29 +612,41 @@ class KScraping(object):
         if len(self._a2_data) == 0:
             self._a2_data = self._cl_scraping(CL_A2_URL, A2_SIZE)
         
-        if self._k_data == NUM_ROWS and self._b1_data == B1_SIZE and \
-            self._a2_data == A2_SIZE:        
-            self._pre_data = True
-        
-    def scrap_post_data(self):
-        """Scraping posterior data.
+    def scrap_data(self):
+        """Scraping data from multiple sources.
         """
         
-        if not self._data_read_from_file:
+        self._k_scraping()
 
-            self._lm_scraping()
-   
-            self._ve_scraping()
-
-            self._qu_scraping()
-
-            self._q1_scraping()
-
-            self._cq_scraping()
-            
-            data_scrapped = True                   
+        self._lm_scraping()
         
+        self._ve_scraping()
+        
+        self._qu_scraping()
+        
+        self._q1_scraping()
+        
+        self._cq_scraping()      
+        
+        self.scrap_cl_data()          
+        
+        if self.data_ok():
             # As a final step, save all the data scrapped.
-            self._save_scraping_data()
+            self._save_scraping_data()      
         
-        self._post_data = True        
+    def data_ok(self):
+        print "%d %d %d %d %d %d %d %d %d" % \
+        (len(self._k_data), len(self._lm_data), len(self._ve_data), \
+                        len(self._qu_data), len(self._q1_data), \
+                        len(self._cq_data), len(self._cqp_data), \
+                        len(self._b1_data), len(self._a2_data))
+         
+        return len(self._k_data) == NUM_ROWS and \
+            len(self._lm_data) == NUM_ROWS and \
+            len(self._ve_data) == NUM_ROWS and \
+            len(self._qu_data) == NUM_ROWS and \
+            len(self._q1_data) == NUM_ROWS and \
+            len(self._cq_data) == NUM_ROWS and \
+            len(self._cqp_data) == NUM_ROWS and \
+            len(self._b1_data) == B1_SIZE and \
+            len(self._a2_data) == A2_SIZE

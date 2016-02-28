@@ -25,10 +25,10 @@ from kscraping import *
 
 class ComposeData(object):
     
-    def __init__(self, scr, index_data, pro_data, pre_data):
+    def __init__(self, scr, pro_data, pre_data):
   
         self._scr = scr
-        self._index_data = index_data
+        self._index_data = scr.k_data
         self._pro_data = pro_data
         self._pre_data = pre_data
         self._final_index = 0

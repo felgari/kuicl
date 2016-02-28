@@ -60,36 +60,119 @@ def get_own_data(scr):
     """Get own data. This data could be generated from some data already 
     scrapped or could be read from local files.    
     """
-    
-    index_data = []
+
     pro_data = []
     pre_data = []
     
-    # Try to generate the data.
-    if scr.pre_data_ok:
+    # Try to read data from file.
+    if scr.index > DEFAULT_INDEX:           
+        pro_file_name = PRO_FILE_NAME_PREFIX + scr.index + INPUT_FILE_NAME_EXT
+        pro_data = read_input_file(pro_file_name)
         
+        pre_file_name = PRE_FILE_NAME_PREFIX + scr.index + INPUT_FILE_NAME_EXT
+        pre_data = read_input_file(pre_file_name)
+    else:            
         propre = ProPre(scr.k_data, scr.b1_data, scr.a2_data)
+        
+        propre.generate_own_data()
         
         index_data = propre.index_data
         pro_data = propre.pro_data
         pre_data = propre.pre_data
-        
-    if len(index_data) == 0 or len(pro_data) == 0 or len(pre_data) == 0:
-        
-        if scr.index > DEFAULT_INDEX:
-            # Read local data.
-            index_file_name = K_FILE_NAME_PREFIX + scr.index + INPUT_FILE_NAME_EXT
-            index_data = read_input_file(index_file_name)
-            
-            pro_file_name = PRO_FILE_NAME_PREFIX + scr.index + INPUT_FILE_NAME_EXT
-            pro_data = read_input_file(pro_file_name)
-            
-            pre_file_name = PRE_FILE_NAME_PREFIX + scr.index + INPUT_FILE_NAME_EXT
-            pre_data = read_input_file(pre_file_name)
-        else:
-            print "ERROR: No index as argument to get local data."
     
-    return index_data, pro_data, pre_data
+    return pro_data, pre_data
+
+def extract_list_text(txt, num):
+    
+    the_list = []
+    
+    pos = txt.find(SCR_TXT_DELIM)
+    txt_red = txt[pos + 1:].strip()
+    
+    lst_from_txt = txt_red.translate(None, "[],\'").split()
+
+    n = 0
+    new_list = []
+    for elt in lst_from_txt:
+        new_list.append(elt)
+
+        n += 1
+        
+        if n == num:
+            the_list.append(new_list)
+            new_list = []
+            n = 0
+    
+    return the_list  
+
+def read_data_from_file(index, scr):
+    
+    success = True
+    lines = []
+    
+    # Read K data from local.
+    index_file_name = K_FILE_NAME_PREFIX + index + INPUT_FILE_NAME_EXT
+    
+    scr.k_data = read_input_file(index_file_name)       
+    
+    # Reading from local file the rest of data.
+    file_name = SCRAPPED_DATA_FILE_PREFIX + index + SCRAPPED_DATA_FILE_EXT  
+    
+    print "Reading data from file: %s" % file_name
+    
+    try:
+        with open(file_name, "r") as f:
+            for l in f:
+                
+                # Process text line.        
+                l_txt = l[:-1].strip()
+                
+                if len(l_txt) > 0:                  
+                    if l_txt.find(LM_TEXT) >= 0:
+                        scr.lm_data = extract_list_text(l_txt, NUM_COLS_LM)
+                        print "Read %dx%d from file for LM" % \
+                            (len(scr.lm_data), len(scr.lm_data[0]))
+                            
+                    elif l_txt.find(VE_TEXT) >= 0:
+                        scr.ve_data = extract_list_text(l_txt, NUM_COLS_VE)
+                        print "Read %dx%d from file for VE" % \
+                            (len(scr.ve_data), len(scr.ve_data[0]))
+                            
+                    elif l_txt.find(QU_TEXT) >= 0:
+                        scr.qu_data = extract_list_text(l_txt, NUM_COLS_QU)
+                        print "Read %dx%d from file for QU" % \
+                            (len(scr.qu_data), len(scr.qu_data[0]))
+                            
+                    elif l_txt.find(Q1_TEXT) >= 0:
+                        scr.q1_data = extract_list_text(l_txt, NUM_COLS_Q1)
+                        print "Read %dx%d from file for Q1" % \
+                            (len(scr.q1_data), len(scr.q1_data[0]))
+                            
+                    elif l_txt.find(CQ_TEXT) >= 0:
+                        scr.cq_data = extract_list_text(l_txt, NUM_COLS_CQ)
+                        print "Read %dx%d from file for CQ" % \
+                            (len(scr.cq_data), len(scr.cq_data[0]))
+                            
+                    elif l_txt.find(CQP_TEXT) >= 0:
+                        scr.cqp_data = extract_list_text(l_txt, NUM_COLS_CQ)
+                        print "Read %dx%d from file for CQP" % \
+                            (len(scr.cqp_data), len(scr.cqp_data[0]))
+                        
+                    elif l_txt.find(B1_TEXT) >= 0:
+                        scr.b1_data = extract_list_text(l_txt, NUM_COLS_CL)
+                        print "Read %dx%d from file for B1" % \
+                            (len(scr.b1_data), len(scr.b1_data[0]))
+                        
+                    elif l_txt.find(A2_TEXT) >= 0:
+                        scr.a2_data = extract_list_text(l_txt, NUM_COLS_CL)
+                        print "Read %dx%d from file for A2" % \
+                            (len(scr.a2_data), len(scr.a2_data[0]))
+                            
+    except IOError as ioe:
+        print "Not found file: '%s'" % file_name  
+        success = False
+        
+    return success 
 
 def main(index):
     """Main function.
@@ -97,30 +180,35 @@ def main(index):
     
     print "Let's go with index %s ..." % index
     
-    # Do some scraping.
     scr = KScraping(index)
-
-    scr.scrap_pre_data()    
     
-    index_data, pro_data, pre_data = get_own_data(scr)   
+    # If an index has been provided try to read data from local files.
+    if int(index) > DEFAULT_INDEX:       
+        read_data_from_file(index, scr)
     
-    if len(index_data) > 0 and len(pro_data) > 0 and \
-        len(pre_data) > 0:
-        
-        # Do more scraping.
-        scr.scrap_post_data()
+    if not scr.data_ok():
+        # Scrap data from the web.      
+        scr.scrap_data()       
     
-        # Compose data.
-        compdat = ComposeData(scr, index_data, pro_data, pre_data)
-        
-        compdat.compose()
-        
-        final_data = compdat.get_final_data()
-        
-        # Finally calculate ap.
-        calculate_ap(final_data, index)
+    if scr.data_ok():
+        # Generate own data.
+        pro_data, pre_data = get_own_data(scr)   
+    
+        # Compose the data.
+        if len(pro_data) > 0 and len(pre_data) > 0:
+            
+            compdat = ComposeData(scr, pro_data, pre_data)
+            
+            compdat.compose()
+            
+            final_data = compdat.get_final_data()
+            
+            # Finally calculate ap.
+            calculate_ap(final_data, scr.index)
+        else:
+            print "ERROR: No data to compose."
     else:
-        print "ERROR: No local data."
+        print "ERROR: Not enough data."
         
     print "Program finished."
     
