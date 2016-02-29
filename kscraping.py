@@ -97,7 +97,6 @@ class KScraping(object):
         
         success = True
         
-        tit = ''
         temp_index = ''
         
         order = []
@@ -105,29 +104,26 @@ class KScraping(object):
         second = []
         data = []
         
-        for cobj in bsObj.findAll(K_COBJ_1, K_COBJ_1_DICT):
-            txt = cobj.find(K_EOBJ_1, K_EOBJ_1_NAME).get_text().strip()
-            title = unicodedata.normalize('NFKD', txt).encode('ascii','ignore')        
-            pos_ini = title.find(K_TITLE_DELIM_1)
-            pos_end = title.find(K_TITLE_DELIM_2)
-            temp_index = title[pos_ini + 1:pos_end]
-            break
+        for cobj in bsObj.findAll(K_COBJ, K_COBJ_DICT):
+            for eobj in cobj.findAll(K_EOBJ, K_EOBJ_NAME):
+                txt = eobj.get_text().strip()
+                txt_norm = unicodedata.normalize('NFKD', txt).encode('ascii','ignore')
+                pos2 = txt_norm.find(K_POS_1_SEP)
+                pos1 = txt_norm[:pos2].rfind(K_POS_2_SEP)
+                temp_index = txt_norm[pos1+1:pos2].strip()
         
-        for cobj in bsObj.findAll(K_COBJ_2, K_COBJ_2_DICT):
-            txt = cobj.find(K_EOBJ_2, K_EOBJ_2_NAME).get_text().strip()
-            txt_norm = unicodedata.normalize('NFKD', txt).encode('ascii','ignore')
-            txt_splt = txt_norm.split(K_DELIM)
-            order = txt_splt
+        for cobj in bsObj.findAll(K_COBJ_INF, K_COBJ_INF_DICT):
+            for eobj in cobj.findAll(K_EOBJ_1, K_EOBJ_1_NAME):
+                txt = eobj.get_text().strip()
+                txt_norm = unicodedata.normalize('NFKD', txt).encode('ascii','ignore')
+                first.append(txt_norm)
+                
+            for eobj in cobj.findAll(K_EOBJ_2, K_EOBJ_2_NAME):
+                txt = eobj.get_text().strip()
+                txt_norm = unicodedata.normalize('NFKD', txt).encode('ascii','ignore')
+                second.append(txt_norm)    
             
-            txt = cobj.find(K_EOBJ_3, K_EOBJ_3_NAME).get_text().strip()
-            txt_norm = unicodedata.normalize('NFKD', txt).encode('ascii','ignore')
-            txt_splt = txt_norm.split(K_DELIM)
-            for t in txt_splt:
-                pos = t.find('-')        
-                first.append(t[:pos])
-                second.append(t[pos+1:])     
-            
-        if len(order) == len(first) and len(first) == len(second):
+        if len(first) == len(second):
             for i in range(len(order)):
                 type_el = TYPE_1_COL
                 try:               
@@ -138,7 +134,7 @@ class KScraping(object):
                     first_name = K_A2_STR_CONVERT[first[i]]
                     second_name = K_A2_STR_CONVERT[second[i]]
 
-                data.append([order[i], type_el, first_name, second_name])
+                data.append([str(i), type_el, first_name, second_name])
         else:
             print "ERROR reading K, data not paired."       
             success = False
