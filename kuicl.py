@@ -52,7 +52,8 @@ def read_input_file(input_file_name):
     except IOError:
         print "ERROR: reading file %s" % input_file_name
         
-    print "Read: %dx%d" % (len(data), len(data[0]))
+    if len(data) > 0:
+        print "Read: %dx%d" % (len(data), len(data[0]))
             
     return data
 
@@ -64,6 +65,8 @@ def get_own_data(scr):
     pro_data = []
     pre_data = []
     
+    propre = ProPre(scr.k_data, scr.b1_data, scr.a2_data, scr.index)
+    
     # Try to read data from file.
     if scr.index > DEFAULT_INDEX:           
         pro_file_name = PRO_FILE_NAME_PREFIX + scr.index + INPUT_FILE_NAME_EXT
@@ -71,14 +74,13 @@ def get_own_data(scr):
         
         pre_file_name = PRE_FILE_NAME_PREFIX + scr.index + INPUT_FILE_NAME_EXT
         pre_data = read_input_file(pre_file_name)
-    else:            
-        propre = ProPre(scr.k_data, scr.b1_data, scr.a2_data)
+    
+    # If the data has not been read from a file, generate it.
+    if not len(pro_data):
+        pro_data = propre.generate_pro_data()
         
-        propre.generate_own_data()
-        
-        index_data = propre.index_data
-        pro_data = propre.pro_data
-        pre_data = propre.pre_data
+    if not len(pre_data):        
+        pre_data = propre.generate_pre_data()        
     
     return pro_data, pre_data
 
