@@ -161,14 +161,15 @@ class KScraping(object):
     
     def _k_scraping(self):
     
-        req = self._prepare_request(K_URL)
-    
-        bsObj = self._check_url(K_URL, req)
+        if len(self._k_data) != NUM_ROWS:
+            req = self._prepare_request(K_URL)
         
-        try:
-            self._process_k_page(bsObj)
-        except KeyError as ke:
-            print "ERROR in k: %s" % ke
+            bsObj = self._check_url(K_URL, req)
+            
+            try:
+                self._process_k_page(bsObj)
+            except KeyError as ke:
+                print "ERROR in k: %s" % ke
     
     # ------------------------------------- Re scraping.        
     def _process_re_page(self, bsObj):
@@ -242,13 +243,14 @@ class KScraping(object):
     
     def _lm_scraping(self):
         
-        req = self._prepare_request(LM_URL)
-    
-        bsObj = self._check_url(LM_URL, req)
+        if len(self._lm_data) != NUM_ROWS:
+            req = self._prepare_request(LM_URL)
         
-        self._process_lm_page(bsObj)
-        
-        print "Read: %dx%d" % (len(self._lm_data), len(self._lm_data[0]))
+            bsObj = self._check_url(LM_URL, req)
+            
+            self._process_lm_page(bsObj)
+            
+            print "Read: %dx%d" % (len(self._lm_data), len(self._lm_data[0]))
         
     # ------------------------------------- VE scraping.        
     def _process_ve_page(self, bsObj):
@@ -269,13 +271,14 @@ class KScraping(object):
     
     def _ve_scraping(self):
         
-        req = self._prepare_request(VE_URL)
-    
-        bsObj = self._check_url(VE_URL, req)
+        if len(self._ve_data) != NUM_ROWS:
+            req = self._prepare_request(VE_URL)
         
-        self._process_ve_page(bsObj)
-        
-        print "Read: %dx%d" % (len(self._ve_data), len(self._ve_data[0]))
+            bsObj = self._check_url(VE_URL, req)
+            
+            self._process_ve_page(bsObj)
+            
+            print "Read: %dx%d" % (len(self._ve_data), len(self._ve_data[0]))
 
     # ------------------------------------- QU scraping.
     def _process_qu_page(self, bsObj):
@@ -302,21 +305,20 @@ class KScraping(object):
     
     def _qu_scraping(self):
         
-        req = self._prepare_request(QU_URL)
-    
-        bsObj = self._check_url(QU_URL, req)
+        if len(self._qu_data) != NUM_ROWS:
+            req = self._prepare_request(QU_URL)
         
-        self._process_qu_page(bsObj)
-        
-        print "Read: %dx%d" % (len(self._qu_data), len(self._qu_data[0]))
+            bsObj = self._check_url(QU_URL, req)
+            
+            self._process_qu_page(bsObj)
+            
+            print "Read: %dx%d" % (len(self._qu_data), len(self._qu_data[0]))
             
     # ------------------------------------- Q1 scraping.
     def _process_q1_page(self, bsObj):
         
         try:
             json_obj = bsObj.find(Q1_COBJ).get_text()
-    
-            #json_txt = unicodedata.normalize('NFKD', json_obj).encode('ascii','ignore')
             
             json_data = json.loads(str(json_obj))
             
@@ -331,16 +333,17 @@ class KScraping(object):
     
     def _q1_scraping(self):
         
-        # The ULR depends on the index received.  
-        url = Q1_URL + self.index
+        if len(self._q1_data) != NUM_ROWS:
+            # The ULR depends on the index received.  
+            url = Q1_URL + self.index
+            
+            req = self._prepare_request(url)
         
-        req = self._prepare_request(url)
-    
-        bsObj = self._check_url(url, req)
-        
-        self._process_q1_page(bsObj)    
-        
-        print "Read: %dx%d" % (len(self._q1_data), len(self._q1_data[0]))        
+            bsObj = self._check_url(url, req)
+            
+            self._process_q1_page(bsObj)    
+            
+            print "Read: %dx%d" % (len(self._q1_data), len(self._q1_data[0]))        
         
     # ------------------------------------- CQ scraping.
     def _process_cq_page(self, bsObj):
@@ -374,16 +377,16 @@ class KScraping(object):
     
     def _cq_scraping(self):
         
-        # The ULR depends on the index received.  
-        url = CQ_URL
+        if len(self._cq_data) != NUM_ROWS:  
+            url = CQ_URL
+            
+            req = self._prepare_request(url)
         
-        req = self._prepare_request(url)
-    
-        bsObj = self._check_url(url, req)        
-        
-        self._process_cq_page(bsObj)     
-        
-        print "Read: %dx%d" % (len(self._q1_data), len(self._q1_data[0]))     
+            bsObj = self._check_url(url, req)        
+            
+            self._process_cq_page(bsObj)     
+            
+            print "Read: %dx%d" % (len(self._q1_data), len(self._q1_data[0]))     
     
     # ------------------------------------- CL scraping.
     def _fill_cl_data(self, data, index, size, bsObj, cobj_data):
@@ -407,12 +410,13 @@ class KScraping(object):
             
         for i in range(size):
             try:
-                data[i][0] = CL_STR_CONVERT[temp_lst[i]]
+                data[i][CL_POS_COL] = i + 1
+                data[i][CL_NAME_COL] = CL_STR_CONVERT[temp_lst[i]]
             except KeyError as ke:
                 print "ERROR: %s" % ke                  
            
         for i in range(len(CL_ELEMENTS)):            
-            self._fill_cl_data(data, i + 1, size, bsObj, CL_ELEMENTS[i]) 
+            self._fill_cl_data(data, i + CL_INDEX_LO, size, bsObj, CL_ELEMENTS[i]) 
             
         return data            
     
@@ -432,10 +436,10 @@ class KScraping(object):
     def _get_data_from_cl(self, cl_data, name):
         
         data = []
-        
+
         for i in range(len(cl_data)):
-            if cl_data[i][NAME_COL_CL] == name:
-                return cl_data[i][NAME_COL_CL + 1:]
+            if cl_data[i][CL_NAME_COL] == name:
+                return cl_data[i][:]
                 
         return data        
     
@@ -444,18 +448,18 @@ class KScraping(object):
         data = self._get_data_from_cl(self._b1_data, name)
         
         if as_lo:
-            return data[:NAME_DATA_LEN]
+            return data[CL_INDEX_LO:CL_INDEX_LO+NAME_DATA_LEN]
         else:
-            return data[NAME_DATA_LEN:] 
+            return data[CL_INDEX_VI:CL_INDEX_VI+NAME_DATA_LEN] 
     
     def get_data_from_a2(self, name, as_lo = True):
         
         data = self._get_data_from_cl(self._a2_data, name)   
         
         if as_lo:
-            return data[:NAME_DATA_LEN]
+            return data[CL_INDEX_LO:CL_INDEX_LO+NAME_DATA_LEN]
         else:
-            return data[NAME_DATA_LEN:]          
+            return data[CL_INDEX_VI:CL_INDEX_VI+NAME_DATA_LEN]          
     
     # ------------------------------------- Properties.  
     @property
@@ -602,10 +606,10 @@ class KScraping(object):
         """Scraping CL data.
         """
         
-        if len(self._b1_data) == 0:
+        if len(self._b1_data) != B1_SIZE:
             self._b1_data = self._cl_scraping(CL_B1_URL, B1_SIZE)
 
-        if len(self._a2_data) == 0:
+        if len(self._a2_data) != A2_SIZE:
             self._a2_data = self._cl_scraping(CL_A2_URL, A2_SIZE)
         
     def scrap_data(self):
