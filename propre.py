@@ -78,7 +78,7 @@ class ProPre(object):
         
         f.close()   
         
-        print "Data saved in: %s" % out_file_name   
+        print "File saved: %s" % out_file_name   
         
     def _read_res_file(self, file_name):
         
@@ -187,13 +187,14 @@ class ProPre(object):
         
         np_tr_data = np.matrix(tr_data)
         np_classes_data = np.array(classes_data)
-        np_prd_data = np.array(prd_data)
+        np_prd_data = np.matrix(prd_data)
             
         rf = RandomForestClassifier(n_estimators=RF_NUM_ESTIMATORS)
+
         rf.fit(np_tr_data, np_classes_data)      
-        
+
         prd = rf.predict_proba(np_prd_data)
-        
+
         sort_pre_val = self._sort_pre_values(prd[0],
                                              np.ndarray.tolist(rf.classes_))
         
@@ -257,6 +258,8 @@ class ProPre(object):
             
             vi_data, vi_pos, vi_cl = \
                 self._get_data_for_pre(k[NAME_VI_COL], cl_data, res_data, False)
+                
+            print "Predicting: %s - %s" % (k[NAME_LO_COL], k[NAME_VI_COL])
             
             lo_pre = self._get_pre_values(lo_data, lo_pos, lo_cl, vi_pos, vi_cl)             
 
