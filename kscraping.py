@@ -245,7 +245,7 @@ class KScraping(object):
     
     def _lm_scraping(self):
         
-        if len(self._lm_data) != NUM_ROWS:
+        if sum(self._lm_data[0]) == 0:
             req = self._prepare_request(LM_URL)
         
             bsObj = self._check_url(LM_URL, req)
@@ -273,7 +273,7 @@ class KScraping(object):
     
     def _ve_scraping(self):
         
-        if len(self._ve_data) != NUM_ROWS:
+        if sum(self._ve_data[0]) == 0:
             req = self._prepare_request(VE_URL)
         
             bsObj = self._check_url(VE_URL, req)
@@ -307,7 +307,7 @@ class KScraping(object):
     
     def _qu_scraping(self):
         
-        if len(self._qu_data) != NUM_ROWS:
+        if sum(self._qu_data[0]) == 0:
             req = self._prepare_request(QU_URL)
         
             bsObj = self._check_url(QU_URL, req)
@@ -335,7 +335,7 @@ class KScraping(object):
     
     def _q1_scraping(self):
         
-        if len(self._q1_data) != NUM_ROWS:
+        if sum(self._q1_data[0]) == 0:
             # The ULR depends on the index received.  
             url = Q1_URL + self.index
             
@@ -379,7 +379,7 @@ class KScraping(object):
     
     def _cq_scraping(self):
         
-        if len(self._cq_data) != NUM_ROWS:  
+        if sum(self._cq_data[0]) == 0:  
             url = CQ_URL
             
             req = self._prepare_request(url)
