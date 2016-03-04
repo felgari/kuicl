@@ -99,7 +99,6 @@ class KScraping(object):
         
         temp_index = ''
         
-        order = []
         first = []
         second = []
         data = []
@@ -111,6 +110,8 @@ class KScraping(object):
                 pos2 = txt_norm.find(K_POS_1_SEP)
                 pos1 = txt_norm[:pos2].rfind(K_POS_2_SEP)
                 temp_index = txt_norm[pos1+1:pos2].strip()
+                
+        print temp_index
         
         for cobj in bsObj.findAll(K_COBJ_INF, K_COBJ_INF_DICT):
             for eobj in cobj.findAll(K_EOBJ_1, K_EOBJ_1_NAME):
@@ -121,11 +122,12 @@ class KScraping(object):
             for eobj in cobj.findAll(K_EOBJ_2, K_EOBJ_2_NAME):
                 txt = eobj.get_text().strip()
                 txt_norm = unicodedata.normalize('NFKD', txt).encode('ascii','ignore')
-                second.append(txt_norm)    
+                second.append(txt_norm)
             
         if len(first) == len(second):
-            for i in range(len(order)):
+            for i in range(len(first)):
                 type_el = TYPE_1_COL
+                
                 try:               
                     first_name = K_B1_STR_CONVERT[first[i]]
                     second_name = K_B1_STR_CONVERT[second[i]]
