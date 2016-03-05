@@ -379,7 +379,7 @@ class KScraping(object):
     
     def _cq_scraping(self):
         
-        if sum(self._cq_data[0]) == 0:  
+        if sum(self._cq_data[0]) == 0:
             url = CQ_URL
             
             req = self._prepare_request(url)
@@ -442,6 +442,8 @@ class KScraping(object):
         for i in range(len(cl_data)):
             if cl_data[i][CL_NAME_COL] == name:
                 return cl_data[i][:]
+            
+        print data
                 
         return data        
     
@@ -450,18 +452,18 @@ class KScraping(object):
         data = self._get_data_from_cl(self._b1_data, name)
         
         if as_lo:
-            return data[CL_INDEX_LO:CL_INDEX_LO+NAME_DATA_LEN]
+            return [int(data[i]) for i in LO_P_RANGE]
         else:
-            return data[CL_INDEX_VI:CL_INDEX_VI+NAME_DATA_LEN] 
+            return [int(data[i]) for i in VI_P_RANGE] 
     
     def get_data_from_a2(self, name, as_lo = True):
         
         data = self._get_data_from_cl(self._a2_data, name)   
         
         if as_lo:
-            return data[CL_INDEX_LO:CL_INDEX_LO+NAME_DATA_LEN]
+            return [int(data[i]) for i in LO_P_RANGE]
         else:
-            return data[CL_INDEX_VI:CL_INDEX_VI+NAME_DATA_LEN]          
+            return [int(data[i]) for i in VI_P_RANGE]           
     
     # ------------------------------------- Properties.  
     @property
