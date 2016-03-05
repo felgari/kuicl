@@ -96,8 +96,11 @@ def extract_list_text(txt, num):
     n = 0
     new_list = []
     for elt in lst_from_txt:
-        new_list.append(elt)
-
+        if elt.isdigit():
+            new_list.append(int(elt))
+        else:
+            new_list.append(elt)
+            
         n += 1
         
         if n == num:
