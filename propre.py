@@ -117,35 +117,29 @@ class ProPre(object):
         if is_lo:
             col = LO_COL_RES
             col_other = VI_COL_RES
-            the_range = LO_RANGE 
-            other_range = VI_RANGE   
         else:
             col = VI_COL_RES
-            col_other = LO_COL_RES
-            the_range = VI_RANGE 
-            other_range = LO_RANGE        
+            col_other = LO_COL_RES     
         
         cl = self._get_cl_data_for_name(name, cl_data)
-        final_cl = [int(cl[i]) for i in the_range]
+        final_cl = [cl[i] for i in P_RANGE]
         
         for res_d in res_data:       
             if res_d[col] == name:
                 cl_other = self._get_cl_data_for_name(res_d[col_other], cl_data)
-                
-                final_cl_other = [int(cl_other[i]) for i in other_range]
-                
+                final_cl_other = [cl_other[i] for i in P_RANGE]
+
                 if is_lo:
                     pre_data.append([cl[CL_POS_COL], final_cl, \
                                      cl_other[CL_POS_COL], final_cl_other, \
-                                     res_d[RES_ELT_COL]])
+                                     res_d[RES_ELT_COL]])                 
                 else:
                     pre_data.append([cl_other[CL_POS_COL], final_cl_other, \
                                      cl[CL_POS_COL], final_cl, \
-                                     res_d[RES_ELT_COL]])                    
-                        
+                                     res_d[RES_ELT_COL]])                                      
+                                               
         return pre_data, cl[CL_POS_COL], final_cl
     
-
     def _get_val_index(self, values, order, sort_values, name):
         
         try:
@@ -171,18 +165,16 @@ class ProPre(object):
         
         for d in data:            
             new_d = []            
-            new_d.append(int(d[0]))
+            new_d.append(int(d[0]) - int(d[2]))
             new_d.extend(d[1])
-            new_d.extend([int(d[2])])
             new_d.extend(d[3])
             
             tr_data.append(new_d)
             
             classes_data.extend([d[4]])
             
-        prd_data = [ int(lo_pos) ]
+        prd_data = [ int(lo_pos) - int(vi_pos) ]
         prd_data.extend(lo_cl)
-        prd_data.extend([int(vi_pos)])
         prd_data.extend(vi_cl)
         
         np_tr_data = np.matrix(tr_data)
