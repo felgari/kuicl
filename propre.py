@@ -45,7 +45,7 @@ class ProPre(object):
             if cl_d[CL_NAME_COL] == name:
                 row = cl_d
                 break
-        
+            
         return row
     
     def _calculate_pro_data(self, data):
