@@ -418,7 +418,7 @@ class KScraping(object):
                 print "ERROR: %s" % ke                  
            
         for i in range(len(CL_ELEMENTS)):            
-            self._fill_cl_data(data, i + CL_INDEX_LO, size, bsObj, CL_ELEMENTS[i]) 
+            self._fill_cl_data(data, i + CL_INDEX_P_LO, size, bsObj, CL_ELEMENTS[i]) 
             
         return data            
     
@@ -445,7 +445,7 @@ class KScraping(object):
                 
         return data        
     
-    def get_data_from_b1(self, name, as_lo = True):
+    def get_p_data_from_b1(self, name, as_lo = True):
         
         data = self._get_data_from_cl(self._b1_data, name)
         
@@ -454,7 +454,7 @@ class KScraping(object):
         else:
             return [int(data[i]) for i in VI_P_RANGE] 
     
-    def get_data_from_a2(self, name, as_lo = True):
+    def get_p_data_from_a2(self, name, as_lo = True):
         
         data = self._get_data_from_cl(self._a2_data, name)   
         
