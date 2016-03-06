@@ -181,7 +181,8 @@ class ProPre(object):
         np_classes_data = np.array(classes_data)
         np_prd_data = np.matrix(prd_data)
             
-        rf = RandomForestClassifier(n_estimators=RF_NUM_ESTIMATORS)
+        rf = RandomForestClassifier(n_estimators = RF_NUM_ESTIMATORS, 
+                                    random_state = RF_SEED)
 
         rf.fit(np_tr_data, np_classes_data)      
 
