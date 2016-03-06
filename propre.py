@@ -19,7 +19,10 @@
 """
 import csv
 import numpy as np
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.svm import SVC
+from sklearn.naive_bayes import GaussianNB
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
 
 from ctes import *
 
@@ -117,17 +120,21 @@ class ProPre(object):
         if is_lo:
             col = LO_COL_RES
             col_other = VI_COL_RES
+            the_range = LO_D_RANGE
+            the_other_range = VI_D_RANGE
         else:
             col = VI_COL_RES
-            col_other = LO_COL_RES     
+            col_other = LO_COL_RES  
+            the_range = VI_D_RANGE
+            the_other_range = LO_D_RANGE   
         
         cl = self._get_cl_data_for_name(name, cl_data)
-        final_cl = [cl[i] for i in P_RANGE]
+        final_cl = [cl[i] for i in the_range]
         
         for res_d in res_data:       
             if res_d[col] == name:
                 cl_other = self._get_cl_data_for_name(res_d[col_other], cl_data)
-                final_cl_other = [cl_other[i] for i in P_RANGE]
+                final_cl_other = [cl_other[i] for i in the_other_range]
 
                 if is_lo:
                     pre_data.append([cl[CL_POS_COL], final_cl, \
@@ -183,6 +190,11 @@ class ProPre(object):
             
         rf = RandomForestClassifier(n_estimators = RF_NUM_ESTIMATORS, 
                                     random_state = RF_SEED)
+        
+        #rf = AdaBoostClassifier()
+        #rf = SVC(gamma=2, C=1, probability=True)
+        #rf = GaussianNB()
+        #rf = KNeighborsClassifier(12)
 
         rf.fit(np_tr_data, np_classes_data)      
 
@@ -215,7 +227,7 @@ class ProPre(object):
                 
             data = self._get_cl_data_for_name(k[NAME_LO_COL], cl_data)
                 
-            lo_data = [int(data[i]) for i in LO_P_RANGE]    
+            lo_data = [int(data[i]) for i in LO_P_RANGE]
             
             calc_lo_data = self._calculate_pro_data(lo_data)         
             
