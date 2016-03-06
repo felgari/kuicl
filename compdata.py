@@ -206,16 +206,7 @@ class ComposeData(object):
             p_dict = { MAX_IS_FIRST : p_1_final, \
                       MAX_IS_SECOND : p_2_final, \
                       MAX_IS_THIRD: p_3_final }
-            
-            keys_sorted = sorted(p_dict) 
-            
-            val = keys_sorted[0]   
-            
-            for i in [1,2]:             
-                if p_dict[keys_sorted[i]] > MIN_PER:   
-                    val += keys_sorted[i]                   
-            
-            self._compdata[i][st_offset + 3] = val              
+       
         
     def _write_data(self):
         
