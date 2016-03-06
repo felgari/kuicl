@@ -442,8 +442,6 @@ class KScraping(object):
         for i in range(len(cl_data)):
             if cl_data[i][CL_NAME_COL] == name:
                 return cl_data[i][:]
-            
-        print data
                 
         return data        
     
