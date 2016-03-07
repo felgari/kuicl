@@ -19,10 +19,7 @@
 """
 import csv
 import numpy as np
-from sklearn.svm import SVC
-from sklearn.naive_bayes import GaussianNB
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
+from sklearn.ensemble import RandomForestClassifier
 
 from ctes import *
 
@@ -62,14 +59,23 @@ class ProPre(object):
         
         return final_data
     
-    def _combine_lo_vi(self, lo_data, vi_data):
+    def _combine_lo_vi(self, lo_data, vi_data, lo_pos = 0, vi_pos = 0):
+
+        lo_w = LO_WEIGHT
+        vi_w = VI_WEIGHT
         
-        return [int(round(LO_WEIGHT * lo_data[FIRST_LO] + \
-                          vi_data[FIRST_VI] * VI_WEIGHT)), 
-            int(round(LO_WEIGHT * lo_data[SECOND_LO] + \
-                    vi_data[SECOND_VI] * VI_WEIGHT)), 
-            int(round(LO_WEIGHT * lo_data[THIRD_LO] + \
-                    vi_data[THIRD_VI] * VI_WEIGHT))]    
+        if lo_pos != 0:
+            m = max(lo_pos, vi_pos)
+            lo_pos = m - lo_pos + 1
+            vi_pos = m - vi_pos + 1
+            sum_pos = float(lo_pos + vi_pos)
+            
+            lo_w = lo_pos / sum_pos
+            vi_w = vi_pos / sum_pos
+        
+        return [int(round(lo_w * lo_data[FIRST_LO] + vi_data[FIRST_VI] * vi_w)), 
+            int(round(lo_w * lo_data[SECOND_LO] + vi_data[SECOND_VI] * vi_w)), 
+            int(round(lo_w * lo_data[THIRD_LO] + vi_data[THIRD_VI] * vi_w))]    
     
     def _save_data(self, out_file_name, data):
         
@@ -189,12 +195,7 @@ class ProPre(object):
         np_prd_data = np.matrix(prd_data)
             
         rf = RandomForestClassifier(n_estimators = RF_NUM_ESTIMATORS, 
-                                    random_state = RF_SEED)
-        
-        #rf = AdaBoostClassifier()
-        #rf = SVC(gamma=2, C=1, probability=True)
-        #rf = GaussianNB()
-        #rf = KNeighborsClassifier(12)
+                                     random_state = RF_SEED)      
 
         rf.fit(np_tr_data, np_classes_data)      
 
@@ -226,6 +227,8 @@ class ProPre(object):
                 cl_data = self._a2_data
                 
             data = self._get_cl_data_for_name(k[NAME_LO_COL], cl_data)
+            
+            lo_pos = int(data[CL_POS_COL])
                 
             lo_data = [int(data[i]) for i in LO_P_RANGE]
             
@@ -233,11 +236,14 @@ class ProPre(object):
             
             data = self._get_cl_data_for_name(k[NAME_VI_COL], cl_data)
             
+            vi_pos = int(data[CL_POS_COL])
+            
             vi_data = [int(data[i]) for i in VI_P_RANGE]
             
             calc_vi_data = self._calculate_pro_data(vi_data)
             
-            self._pro.append(self._combine_lo_vi(calc_lo_data, calc_vi_data))
+            self._pro.append(self._combine_lo_vi(calc_lo_data, calc_vi_data, 
+                                                 lo_pos, vi_pos))
             
         out_file_name = PRO_FILE_NAME_PREFIX + self._index + INPUT_FILE_NAME_EXT
         
