@@ -258,13 +258,10 @@ class KScraping(object):
     def _process_ve_page(self, bsObj):
 
         i = 0
-        j = 0    
-        
-        for cobj in bsObj.findAll(VE_COBJ, VE_DICT):
-            for eobj in cobj.findAll(VE_EOBJ):
-                txt = eobj.get_text()
-                
-                self._ve_data[i][j] = int(txt[:len(txt) - 1])
+        for ob in bsObj.findAll(VE_COBJ_1, VE_DICT_1):     
+            j = 0   
+            for cobj in ob.findAll(VE_COBJ_2, VE_DICT_2):
+                self._ve_data[i][j] = int(cobj.get(VE_ATTRIBUTE))
                 
                 j += 1
                 if j == NUM_COLS:
