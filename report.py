@@ -69,7 +69,7 @@ def process_k(k_data, b1_data, a2_data):
         k_name_1 = k_elt[K_NAME_1_COL]
         k_name_2 = k_elt[K_NAME_2_COL]
         
-        if int(elt_type) == TYPE_1_COL:
+        if elt_type == TYPE_1_COL:
             data = b1_data
         else:
             data = a2_data
@@ -86,16 +86,21 @@ def process_k(k_data, b1_data, a2_data):
         for m in mat2:
             print m
 
-def main():
+def main(index):
     
-    b1_data = read_file(B1_FILE_NAME)    
+    b1_data = read_file(B1_RES_FILE)    
     
-    a2_data = read_file(A2_FILE_NAME)
+    a2_data = read_file(A2_RES_FILE)
     
-    k_data = read_file(K_FILE_NAME)    
+    index_file_name = K_FILE_NAME_PREFIX + index + INPUT_FILE_NAME_EXT
+    
+    k_data = read_file(index_file_name)    
     
     process_k(k_data, b1_data, a2_data)
 
 if __name__ == "__main__":
     
-    main()
+    if len(sys.argv) == NUM_ARGS:
+        sys.exit(main(sys.argv[1]))
+    else:
+        print "The index is needed as argument."
