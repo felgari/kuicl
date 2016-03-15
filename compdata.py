@@ -226,7 +226,7 @@ class ComposeData(object):
         final_data = []
         
         for c in self._compdata:
-            final_data.append(c[self._final_index:])
+            final_data.append([c[DAT_LI_COL]] + c[self._final_index:])
         
         return final_data
                          
