@@ -25,176 +25,64 @@ import operator
 
 from ctes import *
 
-def read_data():
+NUM_ARGS = 2
+
+def read_data(index):
     
     data = []
     
-    with open(AP_FILE_NAME, 'rb') as f:
+    file_name = PREFIX_OUTPUT_FILE_NAME + index + OUTPUT_FILE_NAME_EXT
+    
+    with open(file_name, 'rb') as f:
         reader = csv.reader(f)
         try:
             for row in reader:
                 
-                row_num = []
-                
-                for e in row:
-                    row_num.append(int(e))
-                
-                data.append(row_num)
+                data.append([int(float(row[i])) for i in COLS_FOR_AP_FROM_FILE])
         
         except csv.Error:
-            print "ERROR: reading file %s" % AP_FILE_NAME
+            print "ERROR: reading file %s" % file_name
             
     return data
 
-def get_name(value):
+def calc_ap_base(data):
+    """Get the ap for each row. """
     
-    if value == 0:
-        name = FIRST_NAME
-    elif value == 1:
-        name = SECOND_NAME
-    else:
-        name = THIRD_NAME    
-             
-    return name
-
-def get_base(data):
-    """Get the maximum of each block. """
-    
-    num_row = len(data)
-    num_col = len(data[0])    
-    
-    data_control = [[False for _ in range(num_col)] for _ in range(num_row)]
     base = []
     
-    for i in range(num_row):
+    for d in data:        
+        values = d[AP_FIRST_P_COL:]
         
-        max_val = 0
-        num_max = 0
+        maxi = max(values)
+        index_maxi = values.index(maxi)
         
-        for j in range(num_col):
-            if data[i][j] > max_val:
-                max_val = data[i][j]
-                num_max = j
+        mini = min(values)
+        index_mini = values.index(mini)
         
-        data_control[i][num_max] = True
-        
-        base.append(get_name(num_max))
-    
-    return data_control, base
-
-def get_data_rest(data, data_control):
-    """Get the rest of elements sorted. """
-    
-    num_row = len(data)
-    num_col = len(data[0])      
-    
-    data_rest = dict()
-    for i in range(num_row):
-        for j in range(num_col):
-            if not data_control[i][j]:
-                key = "%s%d%s%d" % (ROW_NAME, i, COL_NAME, j)
-                data_rest[key] = data[i][j]
-    
-    sorted_data_rest = sorted(data_rest.items(), 
-                              key=operator.itemgetter(1), 
-                              reverse=True)
-    
-    return sorted_data_rest
-
-def get_row_col(key):
-    row_pos = key.find(ROW_NAME)
-    
-    col_pos = key.find(COL_NAME, row_pos)
-    
-    row = int(key[row_pos + 1: col_pos])
-    col = int(key[col_pos + 1:])
-    
-    return row, col
-
-def calculate_cost(data):
-    
-    do = 0
-    tr = 0
-    calc = 1
-    
-    for e in data:
-        l = len(e)
-        if l == 2:
-            do += 1
-        elif l == 3:
-            tr += 1
+        if maxi >= HIST_MAX_P:
+            new_base = CURRENT_MAX[index_maxi]         
+        elif mini <= HIST_MIN_P:
+            indexes = [0, 1, 2]
+            indexes.remove(index_maxi)
+            indexes.remove(index_mini)
             
-        calc *= l
+            new_base = CURRENT_MAX[index_maxi] + CURRENT_MAX[indexes[0]]
+        else:               
+            if d[AP_LI_COL] == AP_LI_TYPE_1:
+                new_base = CURRENT_MAX[index_maxi] + CURRENT_MAX[index_mini]
+            else:    
+                indexes = [0, 1, 2]
+                indexes.remove(index_maxi)
+                indexes.remove(index_mini)
                 
-    return calc, do, tr
-
-def possible_data(do, tr):
-    
-    poss = False
-    val =  [do, tr]
-    
-    for n in COMB:
-        if val[0] <= n[0] and val[1] <= n[1]:
-            poss = True
-        
-    return poss
-
-def get_ap(base, data_rest):
-    """Get other alternatives to consider. """
-
-    cost = 0
-    i = 0
-    do = 0
-    tr = 0
-    
-    while cost < MULT_LIMIT or possible_data(do, tr):
-        pair = data_rest[i]
-        key = pair[0]
-        value = pair[1]    
-        i += 1
-        
-        if value > VALUE_LIMIT or possible_data(do, tr):
-            row, col = get_row_col(key)
-            
-            name = get_name(col)
-            
-            new_base = base[:]
-            
-            new_base[row] = new_base[row] + name
-            
-            cost, do, tr = calculate_cost(new_base)
-        
-            if cost < MULT_LIMIT or possible_data(do, tr):
-                base = new_base
-            else:
-                break
-        else:
-            break
-        
-    # Sort the content of each element.
-    for i in range(len(base)):
-        new_base = ''
-        
-        for n in NAMES_AP:        
-            if base[i].find(n) >= 0:
-                new_base += n
+                new_base = CURRENT_MAX[index_maxi] + CURRENT_MAX[indexes[0]] 
                 
-        base[i] = new_base
-        
+        try:
+            base.append(AP_CONV[new_base])
+        except KeyError:
+            base.append(new_base)
+    
     return base
-
-def ap(data):
-    
-    # Get the maximum of each block.
-    data_control, base = get_base(data)
-        
-    # Get the rest of elements sorted.
-    data_rest = get_data_rest(data, data_control)
-    
-    # Get other alternatives to consider.
-    ap_data = get_ap(base, data_rest)
-    
-    return ap_data 
 
 def complementary(data):
     
@@ -211,29 +99,29 @@ def write_data(ap_data, comp_ap_data, index):
     
     print "Saving results in: %s" % out_file_name    
                 
-    with open(out_file_name, "w") as csvfile:
+    with open(out_file_name, "wb") as csvfile:
         csvwriter = csv.writer(csvfile, delimiter=CSV_DELIMITER)            
         
         for i in range(len(ap_data)):
             row = [ ap_data[i], comp_ap_data[i] ]
             csvwriter.writerow(row)   
             
-def calculate_ap(data, index = 0):
+def calculate_ap(data, index):
     
-    ap_data = ap(data)
+    ap_data = calc_ap_base(data)
     
     comp_ap_data = complementary(ap_data)
     
     write_data(ap_data, comp_ap_data, index)    
      
-def main():
+def main(index):
     """Main function.
 
     """    
 
-    data = read_data()
+    data = read_data(index)
                 
-    calculate_ap(data)
+    calculate_ap(data, index)
         
     print "Program finished."
     
@@ -242,4 +130,7 @@ def main():
 # Where all begins ...
 if __name__ == "__main__":
     
-    sys.exit(main())      
+    if len(sys.argv) == NUM_ARGS:
+        sys.exit(main(sys.argv[1]))
+    else:
+        print "An index must be provided to read input file."    
