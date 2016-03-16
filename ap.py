@@ -45,6 +45,15 @@ def read_data(index):
             
     return data
 
+def get_second_index(index_maxi, index_mini):
+    
+    indexes = [0, 1, 2]
+    
+    indexes.remove(index_maxi)
+    indexes.remove(index_mini)   
+    
+    return indexes[0]
+
 def calc_ap_base(data):
     """Get the ap for each row. """
     
@@ -59,23 +68,27 @@ def calc_ap_base(data):
         mini = min(values)
         index_mini = values.index(mini)
         
-        if maxi >= HIST_MAX_P:
-            new_base = CURRENT_MAX[index_maxi]         
-        elif mini <= HIST_MIN_P:
-            indexes = [0, 1, 2]
-            indexes.remove(index_maxi)
-            indexes.remove(index_mini)
-            
-            new_base = CURRENT_MAX[index_maxi] + CURRENT_MAX[indexes[0]]
-        else:               
+        if maxi >= HIST_MAX_P: # One clear option
             if d[AP_LI_COL] == AP_LI_TYPE_1:
-                new_base = CURRENT_MAX[index_maxi] + CURRENT_MAX[index_mini]
-            else:    
-                indexes = [0, 1, 2]
-                indexes.remove(index_maxi)
-                indexes.remove(index_mini)
+                new_base = CURRENT_MAX[index_maxi]
+            else:
+                index_mid = get_second_index(index_maxi, index_mini)
                 
-                new_base = CURRENT_MAX[index_maxi] + CURRENT_MAX[indexes[0]] 
+                new_base = CURRENT_MAX[index_maxi] + CURRENT_MAX[index_mid]             
+        elif mini <= HIST_MIN_P: # Two options
+            if d[AP_LI_COL] == AP_LI_TYPE_1:
+                new_base = CURRENT_MAX[index_maxi]
+            else:
+                index_mid = get_second_index(index_maxi, index_mini)            
+            
+                new_base = CURRENT_MAX[index_maxi] + CURRENT_MAX[index_mid]
+        else: # Three options.                 
+            index_mid = get_second_index(index_maxi, index_mini)
+            
+            new_base = CURRENT_MAX[index_maxi] + CURRENT_MAX[index_mid] 
+                
+        if new_base == MAX_IS_SECOND:
+            new_base = NAMES_AP_STR
                 
         try:
             base.append(AP_CONV[new_base])
@@ -113,6 +126,31 @@ def calculate_ap(data, index):
     comp_ap_data = complementary(ap_data)
     
     write_data(ap_data, comp_ap_data, index)    
+    
+    return ap_data, comp_ap_data
+
+def calc_stats(data, ap_data):
+    
+    st = [0.0] * len(data)
+    
+    for i in range(len(data)):
+        ap = ap_data[i]
+        d = data[i]
+                        
+        for j in range(len(NAMES_AP)):
+            
+            n = NAMES_AP[j]
+            
+            if ap.find(n) >= 0:
+                st[i] += d[AP_FIRST_P_COL + j] / 100.0
+                
+    prob = []
+        
+    for n in range(AP_STAT_TIMES):
+        prob.append(int(reduce(operator.mul, st, 1) * 100))
+        st.remove(min(st))
+        
+    print "Prob is: %s" % prob
      
 def main(index):
     """Main function.
@@ -121,7 +159,11 @@ def main(index):
 
     data = read_data(index)
                 
-    calculate_ap(data, index)
+    ap_data, comp_ap_data = calculate_ap(data, index)
+    
+    calc_stats(data, ap_data)
+    
+    calc_stats(data, comp_ap_data)    
         
     print "Program finished."
     
