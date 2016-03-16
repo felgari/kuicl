@@ -23,7 +23,7 @@ import csv
 
 from ctes import *
 
-def read_file(file_name):
+def read_hist_data(file_name):
     
     data = []
     
@@ -136,7 +136,7 @@ def generate_summary(data):
 
 def main():
     
-    hist_data = read_file(AP_HIST_FILE)
+    hist_data = read_hist_data(AP_HIST_FILE)
 
     if len(hist_data) > 0:
         generate_summary(hist_data)
