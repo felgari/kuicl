@@ -54,7 +54,7 @@ def get_label_and_match(row):
     mini = min(values)
     index_mini = values.index(mini) + SUM_P1_COL
     
-    res_pos = HIST_CONV[row[SUM_R_COL]]
+    res_pos = SUM_HIST_CONV[row[SUM_R_COL]]
     
     if maxi >= HIST_MAX_P:
         label = LAB_1_OP          
@@ -130,7 +130,7 @@ def generate_summary(data):
     for l in l_list:
         print "Summary for: %s" % l
         
-        l_data = [ [ d[i] for i in HIST_SUM_COLS] for d in data if d[HIST_L_COL] == l ]
+        l_data = [ [ d[i] for i in HIST_COLS_FOR_SUM] for d in data if d[HIST_L_COL] == l ]
         
         summary(l_data)
 
