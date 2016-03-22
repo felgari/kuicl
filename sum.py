@@ -27,6 +27,8 @@ def read_hist_data(file_name):
     
     data = []
     
+    print "Reading file: %s" % file_name
+    
     try:
         with open(file_name, "rb") as fr:
             
@@ -125,12 +127,13 @@ def summary(data):
         
 def generate_summary(data):
     
-    l_list = list(set([ d[HIST_L_COL] for d in data]))
+    l_list = list(set([ d[HIST_PRED_L_COL] for d in data]))
     
     for l in l_list:
         print "Summary for: %s" % l
         
-        l_data = [ [ d[i] for i in HIST_COLS_FOR_SUM] for d in data if d[HIST_L_COL] == l ]
+        l_data = [ [ d[i] for i in HIST_COLS_FOR_SUM] \
+                    for d in data if d[HIST_PRED_L_COL] == l ]
         
         summary(l_data)
 
