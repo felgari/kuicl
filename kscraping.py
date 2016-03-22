@@ -611,7 +611,7 @@ class KScraping(object):
         if len(self._a2_data) != A2_SIZE:
             self._a2_data = self._cl_scraping(CL_A2_URL, A2_SIZE)
         
-    def scrap_data(self):
+    def scrap_all_sources(self):
         """Scraping data from multiple sources.
         """
         

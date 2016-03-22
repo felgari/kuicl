@@ -193,7 +193,7 @@ def main(index):
     
     if not scr.data_ok():
         # Scrap data from the web.      
-        scr.scrap_data()       
+        scr.scrap_all_sources()       
     
     if scr.data_ok():
         # Generate own data.
