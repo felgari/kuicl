@@ -132,67 +132,79 @@ class ComposeData(object):
             
         return mat_offset, mean_offset
         
+    def _calc_p(self, i, p_type, mat_data, mean_data):  
+        
+        if p_type == TYPE_1_COL: 
+            p_with = P_WITH_B1
+        else:
+            p_with = P_WITH_A2         
+        
+        p_lo_sum = 0.0
+        p_vi_sum = 0.0
+        
+        for k in range(NAME_DATA_LEN):
+            p_lo_sum += mat_data[i][k]
+            p_vi_sum += mat_data[i][NAME_DATA_LEN + k]
+        
+        p_lo_sum *= 1.0
+        p_vi_sum *= 1.0
+        
+        p_lo_1 = 0.0
+        p_lo_2 = 0.0
+        p_lo_3 = 0.0
+        
+        if p_lo_sum > 0.0:
+            p_lo_1 = (1.0 * mat_data[i][0]) / p_lo_sum
+            p_lo_2 = (1.0 * mat_data[i][1]) / p_lo_sum
+            p_lo_3 = (1.0 * mat_data[i][2]) / p_lo_sum
+            
+        p_vi_1 = 0.0
+        p_vi_2 = 0.0
+        p_vi_3 = 0.0
+        
+        if p_vi_sum > 0.0:
+            p_vi_1 = (1.0 * mat_data[i][NAME_DATA_LEN]) / p_vi_sum
+            p_vi_2 = (1.0 * mat_data[i][NAME_DATA_LEN + 1]) / p_vi_sum
+            p_vi_3 = (1.0 * mat_data[i][NAME_DATA_LEN + 2]) / p_vi_sum
+            
+        p_13 = p_lo_1 * p_vi_3
+        p_22 = p_lo_2 * p_vi_2
+        p_31 = p_lo_3 * p_vi_1
+        
+        p_1 = 0.0
+        p_2 = 0.0
+        p_3 = 0.0
+        
+        if p_with > 0.0:
+            p_1 = p_13 * mean_data[i][0] / p_with
+            p_2 = p_22 * mean_data[i][1] / p_with
+            p_3 = p_31 * mean_data[i][2] / p_with
+            
+        p_sum = p_1 + p_2 + p_3
+        
+        p_1_final = 0.0
+        p_2_final = 0.0
+        p_3_final = 0.0
+        
+        if p_sum > 0.0:
+            p_1_final = 100.0 * p_1 / p_sum
+            p_2_final = 100.0 * p_2 / p_sum
+            p_3_final = 100.0 * p_3 / p_sum
+            
+        return p_1_final, p_2_final, p_3_final
+
     def _calculate(self, mat_offset, mean_offset):        
         
         # Calculate Ps depending on the data for each one.
-        for i in range(NUM_ROWS):
-            p_with = 1.0
-            
-            if self._compdata[i][TYPE_COL] == TYPE_1_COL: 
-                p_with = P_WITH_B1
-            else:
-                p_with = P_WITH_A2
+        for i in range(NUM_ROWS):                       
+            mat_data = []
+            mean_data = []         
+            for j in range(len(self._compdata)):
+                mat_data.append(self._compdata[j][mat_offset:mat_offset + 2 * NAME_DATA_LEN])
+                mean_data.append(self._compdata[j][mean_offset:mean_offset + 3])
                 
-            p_lo_sum = 0.0
-            p_lo_1 = 0.0
-            p_lo_2 = 0.0
-            p_lo_3 = 0.0
-                   
-            p_vi_sum = 0.0  
-            p_vi_1 = 0.0
-            p_vi_2 = 0.0
-            p_vi_3 = 0.0   
-                
-            for k in range(NAME_DATA_LEN):
-                p_lo_sum += self._compdata[i][mat_offset + k]                
-                p_vi_sum += self._compdata[i][mat_offset + NAME_DATA_LEN + k]
-                
-            p_lo_sum *= 1.0
-            p_vi_sum *= 1.0
-
-            if p_lo_sum > 0.0:
-                p_lo_1 = ( 1.0 * self._compdata[i][mat_offset] ) / p_lo_sum
-                p_lo_2 = ( 1.0 * self._compdata[i][mat_offset + 1] ) / p_lo_sum
-                p_lo_3 = ( 1.0 * self._compdata[i][mat_offset + 2] ) / p_lo_sum
-            
-            if p_vi_sum > 0.0:
-                p_vi_1 = ( 1.0 * self._compdata[i][mat_offset + NAME_DATA_LEN] ) / p_vi_sum
-                p_vi_2 = ( 1.0 * self._compdata[i][mat_offset + NAME_DATA_LEN + 1] ) / p_vi_sum
-                p_vi_3 = ( 1.0 * self._compdata[i][mat_offset + NAME_DATA_LEN + 2] ) / p_vi_sum 
-            
-            p_13 = p_lo_1 * p_vi_3
-            p_22 = p_lo_2 * p_vi_2
-            p_31 = p_lo_3 * p_vi_1   
-                
-            p_1 = 0.0
-            p_2 = 0.0                 
-            p_3 = 0.0
-            
-            if p_with > 0.0:
-                p_1 = p_13 * self._compdata[i][mean_offset] / p_with
-                p_2 = p_22 * self._compdata[i][mean_offset + 1] / p_with                     
-                p_3 = p_31 * self._compdata[i][mean_offset + 2] / p_with  
-            
-            p_sum = p_1 + p_2 + p_3
-            
-            p_1_final = 0.0
-            p_2_final = 0.0
-            p_3_final = 0.0        
-            
-            if p_sum > 0.0:
-                p_1_final = 100.0 * p_1 / p_sum
-                p_2_final = 100.0 * p_2 / p_sum
-                p_3_final = 100.0 * p_3 / p_sum 
+            p_1_final, p_2_final, p_3_final = \
+                self._calc_p(i, self._compdata[i][TYPE_COL], mat_data, mean_data) 
                 
             st_offset = mat_offset + NAME_DATA_LEN * 2 
             
@@ -206,8 +218,7 @@ class ComposeData(object):
             p_dict = { MAX_IS_FIRST : p_1_final, \
                       MAX_IS_SECOND : p_2_final, \
                       MAX_IS_THIRD: p_3_final }
-       
-        
+               
     def _write_data(self):
         
         output_file_name = PREFIX_OUTPUT_FILE_NAME + \
@@ -230,7 +241,7 @@ class ComposeData(object):
         
         return final_data
                          
-    def compose(self):
+    def compose_all_data(self):
         
         # Fill with source data from index.
         mat_offset, mean_offset = self._fill_data()
@@ -239,4 +250,12 @@ class ComposeData(object):
         self._calculate(mat_offset, mean_offset)
         
         # Write results.  
-        self._write_data()      
+        self._write_data()
+        
+    def compose_own_data(self):    
+        
+        # Calculations.
+        self._calculate(mat_offset, mean_offset)
+        
+        # Write results.  
+        self._write_data()        
