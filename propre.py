@@ -64,15 +64,6 @@ class ProPre(object):
         lo_w = LO_WEIGHT
         vi_w = VI_WEIGHT
         
-        if lo_pos != 0:
-            m = max(lo_pos, vi_pos)
-            lo_pos = m - lo_pos + 1
-            vi_pos = m - vi_pos + 1
-            sum_pos = float(lo_pos + vi_pos)
-            
-            lo_w = lo_pos / sum_pos
-            vi_w = vi_pos / sum_pos
-        
         return [int(round(lo_w * lo_data[FIRST_LO] + vi_data[FIRST_VI] * vi_w)), 
             int(round(lo_w * lo_data[SECOND_LO] + vi_data[SECOND_VI] * vi_w)), 
             int(round(lo_w * lo_data[THIRD_LO] + vi_data[THIRD_VI] * vi_w))]    
@@ -132,8 +123,8 @@ class ProPre(object):
             col = VI_COL_RES
             col_other = LO_COL_RES  
             the_range = VI_D_RANGE
-            the_other_range = LO_D_RANGE   
-        
+            the_other_range = LO_D_RANGE
+            
         cl = self._get_cl_data_for_name(name, cl_data)
         final_cl = [cl[i] for i in the_range]
         
@@ -195,7 +186,7 @@ class ProPre(object):
         np_prd_data = np.matrix(prd_data)
             
         rf = RandomForestClassifier(n_estimators = RF_NUM_ESTIMATORS, 
-                                     random_state = RF_SEED)      
+                                     random_state = RF_SEED)  
 
         rf.fit(np_tr_data, np_classes_data)      
 
