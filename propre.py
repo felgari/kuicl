@@ -211,7 +211,7 @@ class ProPre(object):
 
     def generate_pro_data(self):
         
-        for k in self._k_data:
+        for k in self._k_data:                    
             if k[TYPE_COL] == TYPE_1_COL:  
                 cl_data = self._b1_data
             else:
