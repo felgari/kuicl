@@ -21,13 +21,12 @@
 
 import sys
 import csv
+import kparser
 from ctes import *
 from kscraping import *
 from compdata import *
 from propre import *
 from ap import *
-
-NUM_ARGS = 2
 
 def read_input_file(input_file_name):
              
@@ -57,6 +56,24 @@ def read_input_file(input_file_name):
             
     return data
 
+def read_k_file(index):
+    
+    k_file_name = K_FILE_NAME_PREFIX + index + INPUT_FILE_NAME_EXT
+    
+    return read_input_file(k_file_name)
+
+def read_pro_file(index):
+    
+    pro_file_name = PRO_FILE_NAME_PREFIX + index + INPUT_FILE_NAME_EXT
+    
+    return read_input_file(pro_file_name)
+
+def read_pre_file(index):
+    
+    pre_file_name = PRE_FILE_NAME_PREFIX + index + INPUT_FILE_NAME_EXT
+    
+    return read_input_file(pre_file_name)
+
 def get_own_data(scr):
     """Get own data. This data could be generated from some data already 
     scrapped or could be read from local files.    
@@ -69,11 +86,9 @@ def get_own_data(scr):
     
     # Try to read data from file.
     if scr.index > DEFAULT_INDEX:           
-        pro_file_name = PRO_FILE_NAME_PREFIX + scr.index + INPUT_FILE_NAME_EXT
-        pro_data = read_input_file(pro_file_name)
+        pro_data = read_pro_file(scr.index)
         
-        pre_file_name = PRE_FILE_NAME_PREFIX + scr.index + INPUT_FILE_NAME_EXT
-        pre_data = read_input_file(pre_file_name)
+        pre_data = read_pre_file(scr.index)
     
     # If the data has not been read from a file, generate it.
     if not len(pro_data):
@@ -116,9 +131,7 @@ def read_data_from_file(index, scr):
     lines = []
     
     # Read K data from local.
-    index_file_name = K_FILE_NAME_PREFIX + index + INPUT_FILE_NAME_EXT
-    
-    scr.k_data = read_input_file(index_file_name)       
+    scr.k_data = read_k_file(index)    
     
     # Reading from local file the rest of data.
     file_name = SCRAPPED_DATA_FILE_PREFIX + index + SCRAPPED_DATA_FILE_EXT  
@@ -179,41 +192,94 @@ def read_data_from_file(index, scr):
         
     return success 
 
-def main(index):
-    """Main function.
-    """    
-    
-    print "Let's go with index %s ..." % index
-    
-    scr = KScraping(index)
+def calc_with_all_sources(scr):
     
     # If an index has been provided try to read data from local files.
-    if int(index) > DEFAULT_INDEX:       
-        read_data_from_file(index, scr)
+    if int(scr.index) > DEFAULT_INDEX:       
+        read_data_from_file(scr.index, scr)    
     
-    if not scr.data_ok():
-        # Scrap data from the web.      
-        scr.scrap_all_sources()       
-    
+    if not scr.data_ok(): # Scrap data from the web.
+        scr.scrap_all_sources()
+        
     if scr.data_ok():
+        
         # Generate own data.
-        pro_data, pre_data = get_own_data(scr)   
-    
+        pro_data, pre_data = get_own_data(scr)
+        
         # Compose the data.
         if len(pro_data) > 0 and len(pre_data) > 0:
             
             compdat = ComposeData(scr, pro_data, pre_data)
-            
-            compdat.compose()
+            compdat.compose_all_data()
             
             final_data = compdat.get_final_data()
-            
-            # Finally calculate ap.
+        
             calculate_ap(final_data, scr.index)
         else:
             print "ERROR: No data to compose."
     else:
         print "ERROR: Not enough data."
+
+def calc_final_data(k_data, pro_data, pre_data):
+
+    final_data = []
+    
+    for i in range(len(k_data)):
+        type_k = k_data[i][K_TYPE_COL]
+        
+        p_num = []
+        
+        for j in range(len(pro_data[i])):
+            
+            p_num.append(( int(pro_data[i][j]) / 100.0 ) * 
+                         ( int(pre_data[i][j]) / 100.0 ))
+            
+        p_sum = sum(p_num)
+        
+        final_data.append([type_k] + [ int(p / p_sum * 100) for p in p_num ])
+    
+    return final_data
+        
+def calc_with_own_sources(scr):
+    
+    if int(scr.index) > DEFAULT_INDEX:                 
+        # Read data from local.
+        k_data = read_k_file(scr.index)                   
+        pro_data = read_pro_file(scr.index)
+        pre_data = read_pre_file(scr.index) 
+        
+        if len(pro_data) == 0 or len(pre_data) == 0:            
+            scr.scrap_cl_data()
+            
+            prp = ProPre(k_data, scr.b1_data, scr.a2_data, scr.index)     
+                    
+            pro_data = prp.generate_pro_data()
+        
+            pre_data = prp.generate_pre_data()
+        
+        final_data = calc_final_data(k_data, pro_data, pre_data)
+        
+        calculate_ap(final_data, scr.index)
+    else:
+        print "An index must be provided."
+
+def main(progargs):
+    """Main function.
+    """    
+    
+    if progargs.index_provided:
+        print "Let's go with index %s ..." % progargs.index
+    else:
+        print "No index provided."
+    
+    scr = KScraping(progargs.index)
+    
+    if progargs.use_all_sources:
+        print "Using all sources ..."
+        calc_with_all_sources(scr)    
+    else:
+        print "Using only local sources ..."
+        calc_with_own_sources(scr)
         
     print "Program finished."
     
@@ -222,9 +288,10 @@ def main(index):
 # Where all begins ...
 if __name__ == "__main__":
     
-    index = DEFAULT_INDEX
-    
-    if len(sys.argv) == NUM_ARGS:
-        index = sys.argv[1]
-    
-    sys.exit(main(index))
+    try:
+        # Object to process the program arguments.
+        progargs = kparser.ProgramArguments()
+        
+        sys.exit(main(progargs))   
+    except kparser.ProgramArgumentsException as pae:
+        print pae       
