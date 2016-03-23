@@ -68,23 +68,17 @@ def calc_ap_base(data):
         mini = min(values)
         index_mini = values.index(mini)
         
+        index_mid = get_second_index(index_maxi, index_mini)
+        
         if maxi >= HIST_MAX_P: # One clear option
             if d[AP_LI_COL] == AP_LI_TYPE_1:
-                new_base = CURRENT_MAX[index_maxi]
-            else:
-                index_mid = get_second_index(index_maxi, index_mini)
-                
-                new_base = CURRENT_MAX[index_maxi] + CURRENT_MAX[index_mid]             
+                new_base = CURRENT_MAX[index_maxi]           
         elif mini <= HIST_MIN_P: # Two options
             if d[AP_LI_COL] == AP_LI_TYPE_1:
-                new_base = CURRENT_MAX[index_maxi]
+                new_base = CURRENT_MAX[index_maxi] + CURRENT_MAX[index_mini]
             else:
-                index_mid = get_second_index(index_maxi, index_mini)            
-            
                 new_base = CURRENT_MAX[index_maxi] + CURRENT_MAX[index_mid]
-        else: # Three options.                 
-            index_mid = get_second_index(index_maxi, index_mini)
-            
+        else: # Three options.                           
             new_base = CURRENT_MAX[index_maxi] + CURRENT_MAX[index_mid] 
                 
         if new_base == MAX_IS_SECOND:
