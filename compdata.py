@@ -77,20 +77,17 @@ class ComposeData(object):
                 self._compdata[i][j + cqp_offset] = self._scr._cqp_data[i][j]
                 
                 # Calculate a mean of the data scraped for this column.                
-                val_np_arr = np.array([int(self._pro_data[i][j]), \
-                                      int(self._pre_data[i][j]), \
-                                      int(self._scr.lm_data[i][j]), \
+                val_np_arr = np.array([int(self._scr.lm_data[i][j]), \
                                       int(self._scr._ve_data[i][j]), \
                                       int(self._scr._qu_data[i][j]), \
                                       int(self._scr._q1_data[i][j]), \
-                                      int(self._scr._cq_data[i][j]), \
-                                      int(self._scr._cqp_data[i][j])]) 
+                                      int(self._scr._cq_data[i][j])]) 
                                  
                 self._compdata[i][j + mean_offset] = np.mean(val_np_arr)
                                 
                 curr_sign_max = CURRENT_MAX[j]
                 
-                for k in range(NUM_EXT_SOURCES):
+                for k in range(NUM_EXT_SOURCES_FOR_MEAN):
                     if val_np_arr[k] > max_sign_val[k]:
                         max_sign_val[k] = val_np_arr[k]
                         max_sign_str[k] = curr_sign_max   
