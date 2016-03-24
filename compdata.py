@@ -106,6 +106,7 @@ class ComposeData(object):
             self._compdata[i][max_sign_offset + NUM_EXT_SOURCES] = \
                 ''.join(list(max_sign_set))
                 
+            # Matches values.
             mat_offset = max_sign_offset + NUM_EXT_SOURCES + 1
             
             # Fill data for each name.   
@@ -127,9 +128,9 @@ class ComposeData(object):
                 
             max_offset = mat_offset + 2 * NAME_DATA_LEN
             
-        return mat_offset, mean_offset
+        return mat_offset, pre_offset, mean_offset
         
-    def _calc_p(self, i, p_type, mat_data, mean_data):  
+    def _calc_p(self, i, p_type, mat_data, prob_data):  
         
         if p_type == TYPE_1_COL: 
             p_with = P_WITH_B1
@@ -173,9 +174,9 @@ class ComposeData(object):
         p_3 = 0.0
         
         if p_with > 0.0:
-            p_1 = p_13 * mean_data[i][0] / p_with
-            p_2 = p_22 * mean_data[i][1] / p_with
-            p_3 = p_31 * mean_data[i][2] / p_with
+            p_1 = p_13 * float(prob_data[i][0]) / p_with
+            p_2 = p_22 * float(prob_data[i][1]) / p_with
+            p_3 = p_31 * float(prob_data[i][2]) / p_with
             
         p_sum = p_1 + p_2 + p_3
         
@@ -190,31 +191,41 @@ class ComposeData(object):
             
         return p_1_final, p_2_final, p_3_final
 
-    def _calculate(self, mat_offset, mean_offset):        
+    def _calculate(self, mat_offset, prob_offset, mean_offset): 
+        
+        st_offset = mat_offset + NAME_DATA_LEN * 2     
+        self._final_index = st_offset  
         
         # Calculate Ps depending on the data for each one.
-        for i in range(NUM_ROWS):                       
+        for i in range(NUM_ROWS):              
+                     
             mat_data = []
-            mean_data = []         
+            prob_data = []      
+            mean_data = []   
+            
             for j in range(len(self._compdata)):
                 mat_data.append(self._compdata[j][mat_offset:mat_offset + 2 * NAME_DATA_LEN])
+                prob_data.append(self._compdata[j][prob_offset:prob_offset + 3])
                 mean_data.append(self._compdata[j][mean_offset:mean_offset + 3])
                 
-            p_1_final, p_2_final, p_3_final = \
-                self._calc_p(i, self._compdata[i][TYPE_COL], mat_data, mean_data) 
+            p_1_final_prob, p_2_final_prob, p_3_final_prob = \
+                self._calc_p(i, self._compdata[i][TYPE_COL], mat_data, prob_data) 
                 
-            st_offset = mat_offset + NAME_DATA_LEN * 2 
+            p_1_final_mean, p_2_final_mean, p_3_final_mean = \
+                self._calc_p(i, self._compdata[i][TYPE_COL], mat_data, mean_data)                                            
             
-            self._compdata[i][st_offset] = round(p_1_final)
-            self._compdata[i][st_offset + 1] = round(p_2_final)  
-            self._compdata[i][st_offset + 2] = round(p_3_final) 
-            
-            self._final_index = st_offset
+            self._compdata[i][st_offset] = round(p_1_final_prob)
+            self._compdata[i][st_offset + 1] = round(p_2_final_prob)  
+            self._compdata[i][st_offset + 2] = round(p_3_final_prob) 
+            self._compdata[i][st_offset + 3] = round(p_1_final_mean)
+            self._compdata[i][st_offset + 4] = round(p_2_final_mean)  
+            self._compdata[i][st_offset + 5] = round(p_3_final_mean)             
+                    
             
             # Set the values over the minimum.
-            p_dict = { MAX_IS_FIRST : p_1_final, \
-                      MAX_IS_SECOND : p_2_final, \
-                      MAX_IS_THIRD: p_3_final }
+            p_dict = { MAX_IS_FIRST : p_1_final_prob, \
+                      MAX_IS_SECOND : p_2_final_prob, \
+                      MAX_IS_THIRD: p_3_final_prob }
                
     def _write_data(self):
         
@@ -241,10 +252,10 @@ class ComposeData(object):
     def compose_all_data(self):
         
         # Fill with source data from index.
-        mat_offset, mean_offset = self._fill_data()
+        mat_offset, prob_offset, mean_offset = self._fill_data()
         
         # Calculations.
-        self._calculate(mat_offset, mean_offset)
+        self._calculate(mat_offset, prob_offset, mean_offset)
         
         # Write results.  
         self._write_data()

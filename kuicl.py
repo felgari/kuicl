@@ -213,8 +213,18 @@ def calc_with_all_sources(scr):
             compdat.compose_all_data()
             
             final_data = compdat.get_final_data()
-        
-            calculate_ap(final_data, scr.index)
+            
+            for i in range(len(AP_SUFFIXES)):
+                
+                ap_data = []
+                
+                for j in range(len(final_data)):
+                    row = final_data[j]
+                    ap_data.append([row[AP_LI_COL]] + 
+                                   [row[AP_FIRST_P_COL + k + i * NAME_DATA_LEN] \
+                                        for k in range(NAME_DATA_LEN) ])
+                
+                calculate_ap(ap_data, scr.index + AP_SUFFIXES[i])
         else:
             print "ERROR: No data to compose."
     else:

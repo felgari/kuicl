@@ -46,7 +46,7 @@ def read_data(index):
     return data
 
 def get_second_index(index_maxi, index_mini):
-    
+        
     indexes = [0, 1, 2]
     
     indexes.remove(index_maxi)
