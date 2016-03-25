@@ -50,14 +50,12 @@ class ProPre(object):
     
     def _calculate_pro_data(self, data):
         
-        final_data = []
+        if sum(data) > 0:
+            data_sum = float(sum(data))
+        else:
+            data_sum = 1.0
         
-        data_sum = float(sum(data))
-        
-        for d in data:
-            final_data.append(100 * float(d) / data_sum)
-        
-        return final_data
+        return [ 100 * float(d) / data_sum for d in data ]
     
     def _combine_lo_vi(self, lo_data, vi_data, lo_pos = 0, vi_pos = 0):
 

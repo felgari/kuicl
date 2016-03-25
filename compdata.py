@@ -137,59 +137,39 @@ class ComposeData(object):
         else:
             p_with = P_WITH_A2         
         
-        p_lo_sum = 0.0
-        p_vi_sum = 0.0
+        p_lo_sum = float(sum(mat_data[i][0:NAME_DATA_LEN]))
+        p_vi_sum = float(sum(mat_data[i][NAME_DATA_LEN:2*NAME_DATA_LEN]))
         
-        for k in range(NAME_DATA_LEN):
-            p_lo_sum += mat_data[i][k]
-            p_vi_sum += mat_data[i][NAME_DATA_LEN + k]
-        
-        p_lo_sum *= 1.0
-        p_vi_sum *= 1.0
-        
-        p_lo_1 = 0.0
-        p_lo_2 = 0.0
-        p_lo_3 = 0.0
+        p_lo = [ 100 * float(mat_data[i][j]) for j in range(NAME_DATA_LEN) ]
         
         if p_lo_sum > 0.0:
-            p_lo_1 = (1.0 * mat_data[i][0]) / p_lo_sum
-            p_lo_2 = (1.0 * mat_data[i][1]) / p_lo_sum
-            p_lo_3 = (1.0 * mat_data[i][2]) / p_lo_sum
+            p_lo = [ p / p_lo_sum for p in p_lo ]
             
         p_vi_1 = 0.0
         p_vi_2 = 0.0
         p_vi_3 = 0.0
         
-        if p_vi_sum > 0.0:
-            p_vi_1 = (1.0 * mat_data[i][NAME_DATA_LEN]) / p_vi_sum
-            p_vi_2 = (1.0 * mat_data[i][NAME_DATA_LEN + 1]) / p_vi_sum
-            p_vi_3 = (1.0 * mat_data[i][NAME_DATA_LEN + 2]) / p_vi_sum
-            
-        p_13 = p_lo_1 * p_vi_3
-        p_22 = p_lo_2 * p_vi_2
-        p_31 = p_lo_3 * p_vi_1
+        p_vi = [ 100 * float(mat_data[i][NAME_DATA_LEN + j]) for j in range(NAME_DATA_LEN) ]
         
-        p_1 = 0.0
-        p_2 = 0.0
-        p_3 = 0.0
+        if p_vi_sum > 0.0:
+            p_vi = [ p / p_vi_sum for p in p_vi ]
+            
+        p_lo_vi = [ ( LO_WEIGHT * p_lo[j] ) +
+                    ( VI_WEIGHT * p_vi[NAME_DATA_LEN - j - 1] ) 
+                        for j in range(NAME_DATA_LEN) ] 
+        
+        p_lo_vi = [ p_lo_vi[j] * float(prob_data[i][j]) 
+                        for j in range(NAME_DATA_LEN) ]
         
         if p_with > 0.0:
-            p_1 = p_13 * float(prob_data[i][0]) / p_with
-            p_2 = p_22 * float(prob_data[i][1]) / p_with
-            p_3 = p_31 * float(prob_data[i][2]) / p_with
+            p_lo_vi = [ p / p_with for p in p_lo_vi ]
             
-        p_sum = p_1 + p_2 + p_3
-        
-        p_1_final = 0.0
-        p_2_final = 0.0
-        p_3_final = 0.0
+        p_sum = sum(p_lo_vi)
         
         if p_sum > 0.0:
-            p_1_final = 100.0 * p_1 / p_sum
-            p_2_final = 100.0 * p_2 / p_sum
-            p_3_final = 100.0 * p_3 / p_sum
+            p_lo_vi = [ int(round(100.0 * p / p_sum)) for p in p_lo_vi ]
             
-        return p_1_final, p_2_final, p_3_final
+        return p_lo_vi[0], p_lo_vi[1], p_lo_vi[2]
 
     def _calculate(self, mat_offset, prob_offset, mean_offset): 
         
@@ -214,14 +194,13 @@ class ComposeData(object):
             p_1_final_mean, p_2_final_mean, p_3_final_mean = \
                 self._calc_p(i, self._compdata[i][TYPE_COL], mat_data, mean_data)                                            
             
-            self._compdata[i][st_offset] = round(p_1_final_prob)
-            self._compdata[i][st_offset + 1] = round(p_2_final_prob)  
-            self._compdata[i][st_offset + 2] = round(p_3_final_prob) 
-            self._compdata[i][st_offset + 3] = round(p_1_final_mean)
-            self._compdata[i][st_offset + 4] = round(p_2_final_mean)  
-            self._compdata[i][st_offset + 5] = round(p_3_final_mean)             
-                    
-            
+            self._compdata[i][st_offset] = p_1_final_prob
+            self._compdata[i][st_offset + 1] = p_2_final_prob
+            self._compdata[i][st_offset + 2] = p_3_final_prob
+            self._compdata[i][st_offset + 3] = p_1_final_mean
+            self._compdata[i][st_offset + 4] = p_2_final_mean
+            self._compdata[i][st_offset + 5] = p_3_final_mean           
+                                
             # Set the values over the minimum.
             p_dict = { MAX_IS_FIRST : p_1_final_prob, \
                       MAX_IS_SECOND : p_2_final_prob, \
