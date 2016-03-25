@@ -37,7 +37,8 @@ class ProPre(object):
         self._pro = []
         self._pre = []
             
-    def _get_cl_data_for_name(self, name, cl_data):
+    @staticmethod
+    def get_cl_data_for_name(name, cl_data):
         
         row = []
         
@@ -48,7 +49,8 @@ class ProPre(object):
             
         return row
     
-    def _calculate_pro_data(self, data):
+    @staticmethod
+    def calculate_pro_data(data):
         
         if sum(data) > 0:
             data_sum = float(sum(data))
@@ -57,14 +59,40 @@ class ProPre(object):
         
         return [ 100 * float(d) / data_sum for d in data ]
     
-    def _combine_lo_vi(self, lo_data, vi_data, lo_pos = 0, vi_pos = 0):
-
-        lo_w = LO_WEIGHT
-        vi_w = VI_WEIGHT
+    @staticmethod
+    def combine_lo_vi(lo_data, vi_data):
         
-        return [int(round(lo_w * lo_data[FIRST_LO] + vi_data[FIRST_VI] * vi_w)), 
-            int(round(lo_w * lo_data[SECOND_LO] + vi_data[SECOND_VI] * vi_w)), 
-            int(round(lo_w * lo_data[THIRD_LO] + vi_data[THIRD_VI] * vi_w))]    
+        return [int(round(LO_WEIGHT * lo_data[FIRST_LO] + 
+                          vi_data[FIRST_VI] * VI_WEIGHT)), 
+                int(round(LO_WEIGHT * lo_data[SECOND_LO] +
+                          vi_data[SECOND_VI] * VI_WEIGHT)),
+                int(round(LO_WEIGHT * lo_data[THIRD_LO] +
+                          vi_data[THIRD_VI] * VI_WEIGHT))]    
+        
+    @staticmethod
+    def calc_final_p(pro_data, pre_data, p_type):
+        
+        if p_type == TYPE_1_COL: 
+            p_with = P_WITH_B1
+        else:
+            p_with = P_WITH_A2          
+        
+        p_num = []
+        
+        for i in range(len(pro_data)):
+            
+            p_num.append(( int(pro_data[i]) / 100.0 ) * 
+                         ( int(pre_data[i]) / 100.0 ))
+            
+        if p_with > 0.0:
+            p_num = [ p / p_with for p in p_num ]
+            
+        p_sum = sum(p_num)
+        
+        if p_sum > 0:
+            p_num = [ int(round(100.0 * p / p_sum)) for p in p_num ]  
+            
+        return p_num              
     
     def _save_data(self, out_file_name, data):
         
@@ -123,12 +151,12 @@ class ProPre(object):
             the_range = VI_D_RANGE
             the_other_range = LO_D_RANGE
             
-        cl = self._get_cl_data_for_name(name, cl_data)
+        cl = ProPre.get_cl_data_for_name(name, cl_data)
         final_cl = [cl[i] for i in the_range]
         
         for res_d in res_data:       
             if res_d[col] == name:
-                cl_other = self._get_cl_data_for_name(res_d[col_other], cl_data)
+                cl_other = ProPre.get_cl_data_for_name(res_d[col_other], cl_data)
                 final_cl_other = [cl_other[i] for i in the_other_range]
 
                 if is_lo:
@@ -207,32 +235,40 @@ class ProPre(object):
     def pre_data(self):
         return self._pre
 
+    @staticmethod
+    def get_data_for_pro(k, cl_data, is_lo):
+        
+        if is_lo:
+            name_col = NAME_LO_COL
+            p_range = LO_P_RANGE
+        else:
+            name_col = NAME_VI_COL
+            p_range = VI_P_RANGE
+                    
+        data_from_name = ProPre.get_cl_data_for_name(k[name_col], cl_data)
+        
+        pos = int(data_from_name[CL_POS_COL])
+        
+        data_from_range = [int(data_from_name[i]) for i in p_range]
+        
+        data_for_calc = ProPre.calculate_pro_data(data_from_range)
+        
+        return data_for_calc, pos
+
     def generate_pro_data(self):
         
-        for k in self._k_data:                    
+        for k in self._k_data:             
+                   
             if k[TYPE_COL] == TYPE_1_COL:  
                 cl_data = self._b1_data
             else:
                 cl_data = self._a2_data
                 
-            data = self._get_cl_data_for_name(k[NAME_LO_COL], cl_data)
+            calc_lo_data, lo_pos = ProPre.get_data_for_pro(k, cl_data, True)         
             
-            lo_pos = int(data[CL_POS_COL])
-                
-            lo_data = [int(data[i]) for i in LO_P_RANGE]
+            calc_vi_data, vi_pos = ProPre.get_data_for_pro(k, cl_data, False) 
             
-            calc_lo_data = self._calculate_pro_data(lo_data)         
-            
-            data = self._get_cl_data_for_name(k[NAME_VI_COL], cl_data)
-            
-            vi_pos = int(data[CL_POS_COL])
-            
-            vi_data = [int(data[i]) for i in VI_P_RANGE]
-            
-            calc_vi_data = self._calculate_pro_data(vi_data)
-            
-            self._pro.append(self._combine_lo_vi(calc_lo_data, calc_vi_data, 
-                                                 lo_pos, vi_pos))
+            self._pro.append(ProPre.combine_lo_vi(calc_lo_data, calc_vi_data))
             
         out_file_name = PRO_FILE_NAME_PREFIX + self._index + INPUT_FILE_NAME_EXT
         
@@ -265,7 +301,7 @@ class ProPre(object):
 
             vi_pre = self._get_pre_values(vi_data, lo_pos, lo_cl, vi_pos, vi_cl)
             
-            self._pre.append(self._combine_lo_vi(lo_pre, vi_pre))
+            self._pre.append(ProPre.combine_lo_vi(lo_pre, vi_pre))
             
         out_file_name = PRE_FILE_NAME_PREFIX + self._index + INPUT_FILE_NAME_EXT
             

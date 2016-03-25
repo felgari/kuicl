@@ -236,28 +236,10 @@ def calc_final_data(k_data, pro_data, pre_data):
     
     for i in range(len(k_data)):
         type_k = k_data[i][K_TYPE_COL]
-        
-        if type_k == TYPE_1_COL: 
-            p_with = P_WITH_B1
-        else:
-            p_with = P_WITH_A2 
-        
-        p_num = []
-        
-        for j in range(len(pro_data[i])):
             
-            p_num.append(( int(pro_data[i][j]) / 100.0 ) * 
-                         ( int(pre_data[i][j]) / 100.0 ))
+        p_final = ProPre.calc_final_p(pro_data[i], pre_data[i], type_k)
             
-        if p_with > 0.0:
-            p_num = [ p / p_with for p in p_num ]
-            
-        p_sum = sum(p_num)
-        
-        if p_sum > 0:
-            p_num = [ 100.0 * p / p_sum for p in p_num ]
-            
-        final_data.append([type_k] + [ int(round(p)) for p in p_num ])
+        final_data.append([type_k] + [ int(round(p)) for p in p_final ])
     
     return final_data
         

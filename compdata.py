@@ -23,6 +23,8 @@ import numpy as np
 from ctes import *
 from kscraping import *
 
+from propre import ProPre
+
 class ComposeData(object):
     
     def __init__(self, scr, pro_data, pre_data):
@@ -130,46 +132,17 @@ class ComposeData(object):
             
         return mat_offset, pre_offset, mean_offset
         
-    def _calc_p(self, i, p_type, mat_data, prob_data):  
-        
-        if p_type == TYPE_1_COL: 
-            p_with = P_WITH_B1
-        else:
-            p_with = P_WITH_A2         
-        
-        p_lo_sum = float(sum(mat_data[i][0:NAME_DATA_LEN]))
-        p_vi_sum = float(sum(mat_data[i][NAME_DATA_LEN:2*NAME_DATA_LEN]))
-        
-        p_lo = [ 100 * float(mat_data[i][j]) for j in range(NAME_DATA_LEN) ]
-        
-        if p_lo_sum > 0.0:
-            p_lo = [ p / p_lo_sum for p in p_lo ]
+    def _calc_p(self, i, p_type, mat_data, prob_data):                  
             
-        p_vi_1 = 0.0
-        p_vi_2 = 0.0
-        p_vi_3 = 0.0
+        p_lo = ProPre.calculate_pro_data(mat_data[i][0:NAME_DATA_LEN])      
         
-        p_vi = [ 100 * float(mat_data[i][NAME_DATA_LEN + j]) for j in range(NAME_DATA_LEN) ]
-        
-        if p_vi_sum > 0.0:
-            p_vi = [ p / p_vi_sum for p in p_vi ]
+        p_vi = ProPre.calculate_pro_data(mat_data[i][NAME_DATA_LEN:2*NAME_DATA_LEN])
             
-        p_lo_vi = [ ( LO_WEIGHT * p_lo[j] ) +
-                    ( VI_WEIGHT * p_vi[NAME_DATA_LEN - j - 1] ) 
-                        for j in range(NAME_DATA_LEN) ] 
+        p_lo_vi = ProPre.combine_lo_vi(p_lo, p_vi)
         
-        p_lo_vi = [ p_lo_vi[j] * float(prob_data[i][j]) 
-                        for j in range(NAME_DATA_LEN) ]
-        
-        if p_with > 0.0:
-            p_lo_vi = [ p / p_with for p in p_lo_vi ]
+        p_final = ProPre.calc_final_p(p_lo_vi, prob_data[i], p_type)
             
-        p_sum = sum(p_lo_vi)
-        
-        if p_sum > 0.0:
-            p_lo_vi = [ int(round(100.0 * p / p_sum)) for p in p_lo_vi ]
-            
-        return p_lo_vi[0], p_lo_vi[1], p_lo_vi[2]
+        return p_final[0], p_final[1], p_final[2]
 
     def _calculate(self, mat_offset, prob_offset, mean_offset): 
         
