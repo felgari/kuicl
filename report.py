@@ -68,29 +68,34 @@ def process_k(k_data, b1_data, a2_data, index):
     
     print "Saving to file: %s" % out_file_name
     
-    with open(out_file_name, 'w') as f: 
+    try:    
     
-        for k_elt in k_data:
-            elt_type = k_elt[K_TYPE_COL]
-            k_name_1 = k_elt[K_NAME_1_COL]
-            k_name_2 = k_elt[K_NAME_2_COL]
-            
-            if elt_type == TYPE_1_COL:
-                data = b1_data
-            else:
-                data = a2_data
+        with open(out_file_name, 'w') as f: 
+        
+            for k_elt in k_data:
+                elt_type = k_elt[K_TYPE_COL]
+                k_name_1 = k_elt[K_NAME_1_COL]
+                k_name_2 = k_elt[K_NAME_2_COL]
                 
-            mat1 = get_matchings(k_name_1, data, True)
-            mat2 = get_matchings(k_name_2, data, False)
-            
-            f.write("%s\n" % GEN_SEP)
-            f.write("-> %s - %s\n" % (k_name_1, k_name_2))
-            f.write("%s\n" % FIRST_SEP)
-            for m in mat1:
-                f.write("%s\n" % m)
-            f.write("%s\n" % SECOND_SEP)
-            for m in mat2:
-                f.write("%s\n" % m)
+                if elt_type == TYPE_1_COL:
+                    data = b1_data
+                else:
+                    data = a2_data
+                    
+                mat1 = get_matchings(k_name_1, data, True)
+                mat2 = get_matchings(k_name_2, data, False)
+                
+                f.write("%s\n" % GEN_SEP)
+                f.write("-> %s - %s\n" % (k_name_1, k_name_2))
+                f.write("%s\n" % FIRST_SEP)
+                for m in mat1:
+                    f.write("%s\n" % m)
+                f.write("%s\n" % SECOND_SEP)
+                for m in mat2:
+                    f.write("%s\n" % m)
+                    
+    except IOError as ioe:
+         print "Error saving file: '%s'" % out_file_name                    
 
 def main(index):
     

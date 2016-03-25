@@ -96,11 +96,16 @@ class ProPre(object):
     
     def _save_data(self, out_file_name, data):
         
-        with open(out_file_name, 'w') as f:        
-            for d in data:            
-                f.write("%s\n" % CSV_DELIMITER.join(str(i) for i in d))
-        
-        print "File saved: %s" % out_file_name   
+        try:
+            
+            with open(out_file_name, 'w') as f:        
+                for d in data:            
+                    f.write("%s\n" % CSV_DELIMITER.join(str(i) for i in d))
+            
+            print "File saved: %s" % out_file_name
+               
+        except IOError as ioe:
+             print "Error saving file: '%s'" % out_file_name              
         
     def _read_res_file(self, file_name):
         
