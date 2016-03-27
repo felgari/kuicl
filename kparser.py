@@ -54,7 +54,8 @@ class ProgramArguments(object):
         
         self.__parser.add_argument("-i", dest="i", metavar="index",
                                    default=DEFAULT_INDEX,
-                                   help="Index to use.")            
+                                   help="Index to use.", type=int, 
+                                   choices=xrange(1, 100))            
         
         self.__parser.add_argument("-a", dest="a", action="store_true", 
                                    help="Use all sources.")                     
@@ -67,7 +68,7 @@ class ProgramArguments(object):
         
     @property
     def index(self):
-        return self.__args.i    
+        return str(self.__args.i)    
     
     @property
     def use_all_sources(self):
