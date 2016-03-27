@@ -52,12 +52,12 @@ class ProPre(object):
     @staticmethod
     def calculate_pro_data(data):
         
-        if sum(data) > 0:
+        if int(sum(data)):
             data_sum = float(sum(data))
         else:
             data_sum = 1.0
         
-        return [ 100 * float(d) / data_sum for d in data ]
+        return [ 100.0 * float(d) / data_sum for d in data ]
     
     @staticmethod
     def combine_lo_vi(lo_data, vi_data):
