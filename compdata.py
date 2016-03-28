@@ -156,10 +156,10 @@ class ComposeData(object):
             prob_data = []      
             mean_data = []   
             
-            for j in range(len(self._compdata)):
-                mat_data.append(self._compdata[j][mat_offset:mat_offset + 2 * NAME_DATA_LEN])
-                prob_data.append(self._compdata[j][prob_offset:prob_offset + 3])
-                mean_data.append(self._compdata[j][mean_offset:mean_offset + 3])
+            for j, comda in enumerate(self._compdata):
+                mat_data.append(comda[mat_offset:mat_offset + 2 * NAME_DATA_LEN])
+                prob_data.append(comda[prob_offset:prob_offset + 3])
+                mean_data.append(comda[mean_offset:mean_offset + 3])
                 
             p_1_final_prob, p_2_final_prob, p_3_final_prob = \
                 self._calc_p(i, self._compdata[i][TYPE_COL], mat_data, prob_data) 
@@ -189,8 +189,8 @@ class ComposeData(object):
         with open(output_file_name, "w") as csvfile:
             csvwriter = csv.writer(csvfile, delimiter=CSV_DELIMITER)            
             
-            for i in range(len(self._compdata)):
-                csvwriter.writerow(self._compdata[i])
+            for cd in self._compdata:
+                csvwriter.writerow(cd)
 
     def get_final_data(self):
         

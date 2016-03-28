@@ -125,15 +125,15 @@ class KScraping(object):
                 second.append(txt_norm)
             
         if len(first) == len(second):
-            for i in range(len(first)):
+            for i, first_it in enumerate(first):
                 type_el = TYPE_1_COL
                 
                 try:               
-                    first_name = K_B1_STR_CONVERT[first[i]]
+                    first_name = K_B1_STR_CONVERT[first_it]
                     second_name = K_B1_STR_CONVERT[second[i]]
                 except KeyError:                
                     type_el = TYPE_2_COL
-                    first_name = K_A2_STR_CONVERT[first[i]]
+                    first_name = K_A2_STR_CONVERT[first_it]
                     second_name = K_A2_STR_CONVERT[second[i]]
 
                 data.append([str(i), type_el, first_name, second_name])
@@ -414,8 +414,8 @@ class KScraping(object):
             except KeyError as ke:
                 print "ERROR: %s" % ke                  
            
-        for i in range(len(CL_ELEMENTS)):            
-            self._fill_cl_data(data, i + CL_INDEX_P_LO, size, bsObj, CL_ELEMENTS[i]) 
+        for i, elt in enumerate(CL_ELEMENTS):            
+            self._fill_cl_data(data, i + CL_INDEX_P_LO, size, bsObj, elt) 
             
         return data            
     
@@ -436,9 +436,9 @@ class KScraping(object):
         
         data = []
 
-        for i in range(len(cl_data)):
-            if cl_data[i][CL_NAME_COL] == name:
-                return cl_data[i][:]
+        for i, cdat in enumerate(cl_data):
+            if cdat[CL_NAME_COL] == name:
+                return cdat[:]
                 
         return data        
     

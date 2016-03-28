@@ -79,10 +79,9 @@ class ProPre(object):
         
         p_num = []
         
-        for i in range(len(pro_data)):
+        for i, pd in enumerate(pro_data):
             
-            p_num.append(( int(pro_data[i]) / 100.0 ) * 
-                         ( int(pre_data[i]) / 100.0 ))
+            p_num.append(( int(pd) / 100.0 ) * ( int(pre_data[i]) / 100.0 ))
             
         if p_with > 0.0:
             p_num = [ p / p_with for p in p_num ]

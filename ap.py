@@ -115,8 +115,8 @@ def write_data(ap_data, comp_ap_data, index):
     with open(out_file_name, "wb") as csvfile:
         csvwriter = csv.writer(csvfile, delimiter=CSV_DELIMITER)            
         
-        for i in range(len(ap_data)):
-            row = [ ap_data[i], comp_ap_data[i] ]
+        for i, ap_d in enumerate(ap_data):
+            row = [ ap_d, comp_ap_data[i] ]
             csvwriter.writerow(row)   
             
 def calculate_ap(data, index):
@@ -133,14 +133,10 @@ def calc_stats(data, ap_data):
     
     st = [0.0] * len(data)
     
-    for i in range(len(data)):
+    for i, d in enumerate(data):
         ap = ap_data[i]
-        d = data[i]
                         
-        for j in range(len(NAMES_AP)):
-            
-            n = NAMES_AP[j]
-            
+        for j, n in enumerate(NAMES_AP):            
             if ap.find(n) >= 0:
                 st[i] += d[AP_FIRST_P_COL + j] / 100.0
                 

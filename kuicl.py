@@ -214,17 +214,17 @@ def calc_with_all_sources(scr):
             
             final_data = compdat.get_final_data()
             
-            for i in range(len(AP_SUFFIXES)):
+            for i, aps in enumerate(AP_SUFFIXES):
                 
                 ap_data = []
                 
-                for j in range(len(final_data)):
-                    row = final_data[j]
+                for j, fd in enumerate(final_data):
+                    row = fd
                     ap_data.append([row[AP_LI_COL]] + 
                                    [row[AP_FIRST_P_COL + k + i * NAME_DATA_LEN] \
                                         for k in range(NAME_DATA_LEN) ])
                 
-                calculate_ap(ap_data, scr.index + AP_SUFFIXES[i])
+                calculate_ap(ap_data, scr.index + aps)
         else:
             print "ERROR: No data to compose."
     else:
@@ -234,8 +234,8 @@ def calc_final_data(k_data, pro_data, pre_data):
 
     final_data = []
     
-    for i in range(len(k_data)):
-        type_k = k_data[i][K_TYPE_COL]
+    for i, kd in enumerate(k_data):
+        type_k = kd[K_TYPE_COL]
             
         p_final = ProPre.calc_final_p(pro_data[i], pre_data[i], type_k)
             
@@ -258,7 +258,7 @@ def calc_with_own_sources(scr):
                     
             pro_data = prp.generate_pro_data()
         
-            pre_data = prp.generate_pre_data()
+            pre_data = prp.generate_pre_data()            
         
         final_data = calc_final_data(k_data, pro_data, pre_data)
         
