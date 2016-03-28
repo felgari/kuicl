@@ -194,7 +194,7 @@ class KScraping(object):
                 
             for eobj in cobj.findAll(RE_EOBJ, RE_VAL): 
                 txt = eobj.get_text().strip()
-                if len(txt) > 0 and txt[-1] == "'":
+                if len(txt) and txt[-1] == "'":
                     plus = -1
                     i = len(txt) - 2
                     while ( txt[i].isdigit() or txt[i] == RE_DELIM) and i >= 0:
