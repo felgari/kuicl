@@ -568,30 +568,36 @@ class KScraping(object):
     
     def _save_res_data(self, file_name, data):
         
+        print "Saving file: %s" % file_name
+        
         f = open(file_name,'w')
         
-        print data
-        
         for d in data:
-            f.write("%s\n" % str(d[0]))
+            if type(d) is int:
+                f.write("%d\n" % d)
+            else:
+                f.write("%s\n" % unicodedata.normalize('NFKD', d).encode('ascii','ignore'))
         
         f.close() 
         
     def _scrap_res(self, max_range, file_dir, url_prefix, data_size): 
         
-        for i in range(max_range):
+        for i in range(1, max_range + 1):
+            
+            i_str = str(i).zfill(2)
             
             file_name = os.path.join(os.getcwd(), file_dir, \
-                                     self._get_res_file_name(i))
+                                     self._get_res_file_name(i_str))
             
             if not os.path.exists(file_name):     
-                url = url_prefix + i   
+                url = url_prefix + i_str   
                 data = self._re_scraping(url)
                 
                 # If data could not be get, exit.
-                if len(data) == data_size:                     
+                if len(data) > 0:                     
                     self._save_res_data(file_name, data)
                 else:
+                    print "Exiting as no data has been retrieved."
                     break                     
     
     # ------------------------------------- Public functions.    
