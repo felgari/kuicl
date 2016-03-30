@@ -20,59 +20,13 @@
 """
 
 import sys
-import csv
 import kparser
 from ctes import *
 from kscraping import *
 from compdata import *
 from propre import *
 from ap import *
-
-def read_input_file(input_file_name):
-             
-    print "Reading local file: %s" % input_file_name
-                
-    data = []
-
-    try:
-        with open(input_file_name, 'rb') as f:
-            
-            reader = csv.reader(f)
-        
-            for row in reader:
-                if row[0].isdigit():
-                    data.append(row)
-                else:
-                    print "Ignoring line in file %s, maybe a header: %s" % \
-                        (input_file_name, row)
-        
-    except csv.Error:
-        print "ERROR: reading file %s" % input_file_name
-    except IOError:
-        print "ERROR: reading file %s" % input_file_name
-        
-    if len(data) > 0:
-        print "Read: %dx%d" % (len(data), len(data[0]))
-            
-    return data
-
-def read_k_file(index):
-    
-    k_file_name = K_FILE_NAME_PREFIX + index + INPUT_FILE_NAME_EXT
-    
-    return read_input_file(k_file_name)
-
-def read_pro_file(index):
-    
-    pro_file_name = PRO_FILE_NAME_PREFIX + index + INPUT_FILE_NAME_EXT
-    
-    return read_input_file(pro_file_name)
-
-def read_pre_file(index):
-    
-    pre_file_name = PRE_FILE_NAME_PREFIX + index + INPUT_FILE_NAME_EXT
-    
-    return read_input_file(pre_file_name)
+from files import *
 
 def get_own_data(scr):
     """Get own data. This data could be generated from some data already 
