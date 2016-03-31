@@ -45,7 +45,7 @@ def read_input_file(input_file_name):
     except IOError:
         print "ERROR: reading file %s" % input_file_name
         
-    if len(data) > 0:
+    if len(data):
         print "Read: %dx%d" % (len(data), len(data[0]))
             
     return data

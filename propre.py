@@ -131,7 +131,7 @@ class ProPre(object):
         except IOError:
             print "ERROR: reading file %s" % file_name
             
-        if len(res_data) > 0:
+        if len(res_data):
             print "Read: %dx%d" % (len(res_data), len(res_data[0]))
                 
         return res_data        

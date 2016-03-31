@@ -141,7 +141,7 @@ def main():
     
     hist_data = read_hist_data(AP_HIST_FILE)
 
-    if len(hist_data) > 0:
+    if len(hist_data):
         generate_summary(hist_data)
 
 if __name__ == "__main__":

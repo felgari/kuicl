@@ -356,7 +356,7 @@ class KScraping(object):
                 for eobj in cobj.findAll(CQ_EOBJ, CQ_EOBJ_DICT):
                     txt = eobj.get_text().strip() 
                     if i < NUM_ROWS - 1:
-                        if len(txt) > 0:
+                        if len(txt):
                             txt_nor = unicodedata.normalize('NFKD', txt).encode('ascii','ignore')
                             
                             pos = txt_nor.find(CQ_SEP)
@@ -594,7 +594,7 @@ class KScraping(object):
                 data = self._re_scraping(url)
                 
                 # If data could not be get, exit.
-                if len(data) > 0:                     
+                if len(data):                     
                     self._save_res_data(file_name, data)
                 else:
                     print "Exiting as no data has been retrieved."

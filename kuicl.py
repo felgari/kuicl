@@ -99,7 +99,7 @@ def read_data_from_file(index, scr):
                 # Process text line.        
                 l_txt = l[:-1].strip()
                 
-                if len(l_txt) > 0:                  
+                if len(l_txt):                  
                     if l_txt.find(LM_TEXT) >= 0:
                         scr.lm_data = extract_list_text(l_txt, NUM_COLS_LM)
                         print "Read %dx%d from file for LM" % \
@@ -161,7 +161,7 @@ def calc_with_all_sources(scr):
         pro_data, pre_data = get_own_data(scr)
         
         # Compose the data.
-        if len(pro_data) > 0 and len(pre_data) > 0:
+        if len(pro_data) and len(pre_data):
             
             compdat = ComposeData(scr, pro_data, pre_data)
             compdat.compose_all_data()
