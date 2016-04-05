@@ -589,15 +589,17 @@ class KScraping(object):
             file_name = os.path.join(os.getcwd(), file_dir, \
                                      self._get_res_file_name(i_str))
             
-            if not os.path.exists(file_name):     
+            if not os.path.exists(file_name):   
+                print "Retrieving data for file: %s" % file_name  
                 url = url_prefix + i_str   
                 data = self._re_scraping(url)
                 
                 # If data could not be get, exit.
-                if len(data):                     
+                if len(data) and any([row.find(SCO_DELIM) > 0 for row in data]):                     
                     self._save_res_data(file_name, data)
                 else:
-                    print "Exiting as no data has been retrieved."
+                    print "Exiting as no data has been retrieved for: %s." % \
+                        file_name
                     break                     
     
     # ------------------------------------- Public functions.    
