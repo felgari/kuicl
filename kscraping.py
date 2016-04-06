@@ -178,11 +178,13 @@ class KScraping(object):
 
         data = []
         
-        for cobj in bsObj.findAll(RE_COBJ, RE_LINE):
+        for cobj in bsObj.findAll(RE_COBJ, RE_LINE):            
             for eobj in cobj.findAll(RE_EOBJ, RE_SECOND): 
-                data.append(eobj.get_text().strip()) 
+                second = eobj.get_text().strip()
             for eobj in cobj.findAll(RE_EOBJ, RE_FIRST): 
-                data.append(eobj.get_text().strip())  
+                data.append(eobj.get_text().strip())     
+                
+            data.append(second)              
                 
             marcador = True
             for eobj in cobj.findAll(RE_EOBJ, RE_SCO):
@@ -208,7 +210,8 @@ class KScraping(object):
                         z =  x + y
                     else:
                         z = int(txt[i:-1])
-                    data.append(z)    
+                    data.append(z)
+                    
         return data
     
     def _re_scraping(self, url):
@@ -595,7 +598,7 @@ class KScraping(object):
                 data = self._re_scraping(url)
                 
                 # If data could not be get, exit.
-                if len(data) and any([row.find(SCO_DELIM) > 0 for row in data]):                     
+                if len(data) > data_size * 4:                     
                     self._save_res_data(file_name, data)
                 else:
                     print "Exiting as no data has been retrieved for: %s." % \
