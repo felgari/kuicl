@@ -27,6 +27,8 @@ from compdata import *
 from propre import *
 from ap import *
 from files import *
+from resum import *
+from prun import do_prun
 
 def get_own_data(scr):
     """Get own data. This data could be generated from some data already 
@@ -226,17 +228,22 @@ def main(progargs):
     
     if progargs.index_provided:
         print "Let's go with index %s ..." % progargs.index
+        
+        scr = KScraping(progargs.index)
+        
+        if progargs.use_all_sources:
+            print "Using all sources ..."
+            calc_with_all_sources(scr)    
+        else:
+            print "Using only local sources ..."
+            calc_with_own_sources(scr)   
+            
+        print "Calculating prun ..."     
+        do_prun(progargs.index)
     else:
-        print "No index provided."
+        print "No index provided. Only retrieving res ..."
     
-    scr = KScraping(progargs.index)
-    
-    if progargs.use_all_sources:
-        print "Using all sources ..."
-        calc_with_all_sources(scr)    
-    else:
-        print "Using only local sources ..."
-        calc_with_own_sources(scr)
+        retrieve_res()
         
     print "Program finished."
     
