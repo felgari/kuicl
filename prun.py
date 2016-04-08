@@ -222,7 +222,28 @@ def compile_un_data(data_to_predict, src_hist_data, pro_data):
     return hist_data, cl_data, to_pred, dtp
 
 
-def generate_un(data_to_predict, hist_data, cl_data, to_pred):
+
+def save_un(data_to_predict, prd, index):
+    
+    file_name = UN_FILE_NAME_PREFIX + index + UN_OUT_FILE_EXT
+    
+    print "Saving UN in file: %s" % file_name
+    
+    try:
+        with open(file_name, "w") as f:
+    
+            for p, dtp in zip(prd, data_to_predict):
+            
+                if len(p) > 1:
+                    perc = 100 * p[1]
+                
+                    if perc > UN_RES_MIN_VAL:
+                        f.write("%s -> %d%%\n" % (dtp, perc))
+    
+    except IOError as ioe:
+        print "Error saving text file: '%s'" % file_name
+
+def generate_un(data_to_predict, hist_data, cl_data, to_pred, index):
     
     np_hist_data = np.matrix(hist_data)
     np_classes_data = np.array(cl_data)
@@ -235,15 +256,9 @@ def generate_un(data_to_predict, hist_data, cl_data, to_pred):
     
     prd = rf.predict_proba(np_prd_data)
     
-    print "UN data"
-    
-    for p, dtp in zip(prd, data_to_predict):
-        if len(p) > 1:
-            perc = 100 * p[1]
-            if perc > UN_RES_MIN_VAL:
-                print "%s -> %d%%" % (dtp, perc)
+    save_un(data_to_predict, prd, index)   
 
-def calculate_un(data_to_predict, src_hist_data, pro_data):    
+def calculate_un(data_to_predict, src_hist_data, pro_data, index):    
     
     if len(data_to_predict):
         if len(src_hist_data):
@@ -253,7 +268,7 @@ def calculate_un(data_to_predict, src_hist_data, pro_data):
                                     src_hist_data,
                                     pro_data)
         
-                generate_un(data_to_predict, hist_data, cl_data, to_pred)
+                generate_un(data_to_predict, hist_data, cl_data, to_pred, index)
             else:
                 print "ERROR: No pro data to calculate UN"
         else:
@@ -277,7 +292,7 @@ def do_prun(index, pro_data):
     final_unpred = generate_pred(data_to_predict, unpre_data, out_file_name)  
     generate_ap(index + AP_FILE_UNPRE_NAME_SUFFIX, data_to_predict, final_unpred) 
 
-    calculate_un(read_k_file(index), hist_data, pro_data)
+    calculate_un(read_k_file(index), hist_data, pro_data, index)
 
 if __name__ == "__main__":
     
