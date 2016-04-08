@@ -26,6 +26,7 @@ from sklearn.ensemble import RandomForestClassifier
 
 from ctes import *
 from ap import *
+from files import *
 
 NUM_ARGS = 2
 
@@ -77,7 +78,7 @@ def read_data(index):
 def is_pre(hist_row):
     
     r = hist_row[HIST_PRED_R_COL]
-    data_ref = hist_row[HIST_PRED_REF_FIRST_COL:]
+    data_ref = hist_row[HIST_PRED_REF_FIRST_COL:HIST_PRED_REF_LAST_COL]
     
     r_pos = NAMES_AP_STR.find(r)
     min_pos = data_ref.index(min(data_ref))
@@ -91,9 +92,9 @@ def get_pre_unpre(hist_data):
     
     for d in hist_data:
         if is_pre(d):
-            pre.append(d)
+            pre.append(d[:HIST_PRED_REF_LAST_COL])
         else:
-            unpre.append(d)
+            unpre.append(d[:HIST_PRED_REF_LAST_COL])
     
     return pre, unpre
 
@@ -192,9 +193,75 @@ def generate_ap(index_name, data_to_predict, final_pred):
     for i, dtp in enumerate(data_to_predict):
         pre_data_for_ap.append([dtp[HIST_PRED_L_COL]] + final_pred[i])
     
-    calculate_ap(pre_data_for_ap, index_name)
+    calculate_ap(pre_data_for_ap, index_name)  
+    
 
-def do_prun(index):
+def compile_un_data(data_to_predict, src_hist_data, pro_data):
+    hist_data = []
+    cl_data = []
+    for d in src_hist_data:
+        r = d[HIST_PRED_R_COL]
+        col = UN_HIST_CONV[r]
+        r_val = int(d[col])
+        is_un = 1 if r_val < UN_MIN_VAL else 0
+        row = [HIST_NAME_CONVERT[d[HIST_UN_LO_COL]], 
+            HIST_NAME_CONVERT[d[HIST_UN_VI_COL]], 
+            d[HIST_UN_FIRST_COL], 
+            d[HIST_UN_FIRST_COL + 1], 
+            d[HIST_UN_FIRST_COL + 2]]
+        cl_data.append(is_un)
+        hist_data.append(row)
+    
+    to_pred = []
+    for dtp, pd in zip(data_to_predict, pro_data):
+        row = [HIST_NAME_CONVERT[dtp[K_NAME_1_COL]], 
+            HIST_NAME_CONVERT[dtp[K_NAME_2_COL]]]
+        row.extend(pd)
+        to_pred.append(row)
+    
+    return hist_data, cl_data, to_pred, dtp
+
+
+def generate_un(data_to_predict, hist_data, cl_data, to_pred):
+    
+    np_hist_data = np.matrix(hist_data)
+    np_classes_data = np.array(cl_data)
+    np_prd_data = np.matrix(to_pred)
+    
+    rf = RandomForestClassifier(n_estimators=RF_NUM_ESTIMATORS, 
+        random_state=RF_SEED)
+    
+    rf.fit(np_hist_data, np_classes_data)
+    
+    prd = rf.predict_proba(np_prd_data)
+    
+    print "UN data"
+    
+    for p, dtp in zip(prd, data_to_predict):
+        if len(p) > 1:
+            perc = 100 * p[1]
+            if perc > UN_RES_MIN_VAL:
+                print "%s -> %d%%" % (dtp, perc)
+
+def calculate_un(data_to_predict, src_hist_data, pro_data):    
+    
+    if len(data_to_predict):
+        if len(src_hist_data):
+            if len(pro_data):
+                hist_data, cl_data, to_pred, dtp = \
+                    compile_un_data(data_to_predict,
+                                    src_hist_data,
+                                    pro_data)
+        
+                generate_un(data_to_predict, hist_data, cl_data, to_pred)
+            else:
+                print "ERROR: No pro data to calculate UN"
+        else:
+            print "ERROR: No historic data to calculate UN"
+    else:
+        print "ERROR: No data to calculate UN"
+
+def do_prun(index, pro_data):
     
     data_to_predict = read_data(index)    
     
@@ -208,11 +275,14 @@ def do_prun(index):
     
     out_file_name = PRUN_OUT_FILE_NAME_PREFIX_2 + index + PRUN_OT_FILE_EXT
     final_unpred = generate_pred(data_to_predict, unpre_data, out_file_name)  
-    generate_ap(index + AP_FILE_UNPRE_NAME_SUFFIX, data_to_predict, final_unpred)            
+    generate_ap(index + AP_FILE_UNPRE_NAME_SUFFIX, data_to_predict, final_unpred) 
+
+    calculate_un(read_k_file(index), hist_data, pro_data)
 
 if __name__ == "__main__":
     
     if len(sys.argv) == NUM_ARGS:
-        sys.exit(do_prun(sys.argv[1]))
+        pro_data = read_pro_file(sys.argv[1])
+        sys.exit(do_prun(sys.argv[1], pro_data))
     else:
         print "An index must be provided to read input file."  
