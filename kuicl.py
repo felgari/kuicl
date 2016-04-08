@@ -239,7 +239,7 @@ def main(progargs):
             calc_with_own_sources(scr)   
             
         print "Calculating prun ..."     
-        do_prun(progargs.index)
+        do_prun(progargs.index, read_pro_file(scr.index))
     else:
         print "No index provided. Only retrieving res ..."
     
