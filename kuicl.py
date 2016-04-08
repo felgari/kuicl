@@ -207,7 +207,7 @@ def calc_with_own_sources(scr):
         pro_data = read_pro_file(scr.index)
         pre_data = read_pre_file(scr.index) 
         
-        if not len(pro_data) or not len(pre_data) == 0:            
+        if ( not len(pro_data) ) or ( not len(pre_data) ):            
             scr.scrap_cl_data()
             
             prp = ProPre(k_data, scr.b1_data, scr.a2_data, scr.index)     
