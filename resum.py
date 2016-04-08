@@ -373,13 +373,13 @@ def generate_res(res):
     a2_res = []
     
     for r in res:
-        
+
         len_lo = len(r.lo_g)
         len_vi = len(r.vi_g)
         
         if len_lo > len_vi:
             val = MAX_IS_FIRST
-        elif len_vi > len_lo:
+        elif len_lo == len_vi:
             val = MAX_IS_SECOND
         else:
             val = MAX_IS_THIRD
