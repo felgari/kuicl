@@ -92,8 +92,6 @@ def calc_ap_base(data):
             base.append(AP_CONV[new_base])
         except KeyError:
             base.append(new_base)
-            
-        print "%s %12s %s" % (d[AP_LI_COL], d[AP_FIRST_P_COL:], base[-1])
     
     return base
 
