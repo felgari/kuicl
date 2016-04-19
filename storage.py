@@ -33,10 +33,12 @@ class Storage(object):
         self._ve = []
         self._qu = []
         self._q1 = []
+        self._cq = []
         self._cqp = []
         self._mean = []
         self._b1_cl = []
         self._a2_cl = []
+        self._p = []
         self._ap = []
         self._un = []
         self._res = []
@@ -123,7 +125,19 @@ class Storage(object):
         
     @property
     def q1_exists(self):
-        return len(self._q1) > 0  
+        return len(self._q1) > 0 
+    
+    @property
+    def cq(self):
+        return self._cq
+    
+    @cq.setter
+    def cq(self, cq_data):
+        self._cq = cq_data 
+        
+    @property
+    def cq_exists(self):
+        return len(self._cq) > 0 
         
     @property
     def cqp(self):
@@ -160,6 +174,14 @@ class Storage(object):
     @property
     def a2_exists(self):
         return len(self._a2) > 0  
+    
+    @property
+    def p(self):
+        return self._p
+    
+    @p.setter
+    def p(self, p_data):
+        self._p = p_data 
         
     @property
     def ap(self):
@@ -176,26 +198,43 @@ class Storage(object):
     @un.setter
     def un(self, un_data):
         self._un = un_data 
+        
+    @property
+    def ext_data_ok(self):
+         
+        return len(self._k) == NUM_ROWS and \
+            len(self._lm) == NUM_ROWS and \
+            len(self._ve) == NUM_ROWS and \
+            len(self._qu) == NUM_ROWS and \
+            len(self._q1) == NUM_ROWS and \
+            len(self._cq) == NUM_ROWS and \
+            len(self._cqp) == NUM_ROWS and \
+            len(self._b1) == B1_SIZE and \
+            len(self._a2) == A2_SIZE
+            
+    @property
+    def pro_pre_exists(self):
+        return len(self._pro) > 0 and len(self._pre) > 0
 
     def calc_mean(self):
-        sources = []
+        mean_sources = []
         
         if len(self._lm):
-            sources.append(self._lm)
+            mean_sources.append(self._lm)
         if len(self._ve):
-            sources.append(self._ve)
+            mean_sources.append(self._ve)
         if len(self._qu):
-            sources.append(self._qu)
+            mean_sources.append(self._qu)
         if len(self._q1):
-            sources.append(self._q1)
-        if len(self._cqp):
-            sources.append(self._cqp)
+            mean_sources.append(self._q1)
+        if len(self._cq):
+            mean_sources.append(self._cq)
         
-        if len(sources) > 1:
+        if len(mean_sources) > 1:
             for i in NUM_ROWS:
                 new_row = []
                 for j in NUM_COLS:
-                    values = [s[i][j] for s in sources]
+                    values = [s[i][j] for s in mean_sources]
                     new_row.append(mean(values))
                 
                 self._mean.append(new_row)
@@ -212,11 +251,9 @@ class Storage(object):
         
         success = True
         
-        pass # TODO
-        # res
-        # cl
-        # pro
-        # pre
+        read_k_file(scr.index, self)                   
+        read_pro_file(scr.index, self)
+        read_pre_file(scr.index, self)
         
         return success
         
