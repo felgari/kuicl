@@ -24,35 +24,22 @@ from bs4 import BeautifulSoup
 import unicodedata
 import json
 import os
+
 from ctes import *
+from storage import Storage
+from files import *
 
 class KScraping(object):
     """Scraping on some web pages.
     """
     
-    def __init__(self, index):
+    def __init__(self, index, stor):
         """Constructor.                        
         """    
         
         self._index = index
         
-        self._k_data = []
-        
-        self._b1_data = []
-    
-        self._a2_data = []         
-        
-        self._lm_data = [[0 for _ in range(NUM_COLS)] for _ in range(NUM_ROWS)]
-    
-        self._ve_data = [[0 for _ in range(NUM_COLS)] for _ in range(NUM_ROWS)]
-    
-        self._qu_data = [[0 for _ in range(NUM_COLS)] for _ in range(NUM_ROWS)]
-    
-        self._q1_data = [[0 for _ in range(NUM_COLS)] for _ in range(NUM_ROWS)]
-        
-        self._cq_data = [[0 for _ in range(NUM_COLS)] for _ in range(NUM_ROWS)]
-        
-        self._cqp_data = [[0 for _ in range(NUM_COLS)] for _ in range(NUM_ROWS)]
+        self._stor = stor
     
     # ------------------------------------- Common functions.
     def _prepare_request(self, url):
@@ -60,10 +47,8 @@ class KScraping(object):
         """
         
         session = requests.Session()
-        
-        headers = {"User-Agent": USER_AGENT, "Accept": FORMATS_ACCEPTED}
     
-        return session.get(url, headers=headers)    
+        return session.get(url, headers=REQUEST_HEADERS)    
     
     def _check_url(self, url, req):
         """Check connection and retrieving from the url received.
@@ -141,29 +126,18 @@ class KScraping(object):
             print "ERROR reading K, data not paired."       
             success = False
             
-        self._k_data = data
-            
-        out_file_name = K_FILE_NAME_PREFIX + temp_index + INPUT_FILE_NAME_EXT
+        self._stor.k = data
         
-        print "Saving file: %s with %dx%d elements" % \
-            (out_file_name, len(data), len(data[0]))
+        success = save_k_data(temp_index, data)   
         
-        # Save data to a file.
-        f = open(out_file_name,'w')
-        
-        for d in data:
-            f.write("%s,%s,%s,%s\n" % (d[0], d[1], d[2], d[3]))
-        
-        f.close()   
-        
-        # If everything is ok, save also index.
-        self._index = temp_index    
+        if success:
+            self._index = temp_index    
             
         return success  
     
     def _k_scraping(self):
     
-        if len(self._k_data) != NUM_ROWS:
+        if len(self._stor.k) != NUM_ROWS:
             req = self._prepare_request(K_URL)
         
             bsObj = self._check_url(K_URL, req)
@@ -237,7 +211,7 @@ class KScraping(object):
                 
                 elif n >= LM_FIRST_COL and n <= LM_LAST_COL:
     
-                    self._lm_data[i][j] = int(eobj.get_text().strip())
+                    self._stor.lm[i][j] = int(eobj.get_text().strip())
                     
                     j += 1
                     if j == NUM_COLS:
@@ -248,14 +222,14 @@ class KScraping(object):
     
     def _lm_scraping(self):
         
-        if sum(self._lm_data[0]) == 0:
+        if sum(self._stor.lm[0]) == 0:
             req = self._prepare_request(LM_URL)
         
             bsObj = self._check_url(LM_URL, req)
             
             self._process_lm_page(bsObj)
             
-            print "Read: %dx%d" % (len(self._lm_data), len(self._lm_data[0]))
+            print "Read: %dx%d" % (len(self._stor.lm), len(self._stor.lm[0]))
         
     # ------------------------------------- VE scraping.        
     def _process_ve_page(self, bsObj):
@@ -264,7 +238,7 @@ class KScraping(object):
         for ob in bsObj.findAll(VE_COBJ_1, VE_DICT_1):     
             j = 0   
             for cobj in ob.findAll(VE_COBJ_2, VE_DICT_2):
-                self._ve_data[i][j] = int(cobj.get(VE_ATTRIBUTE))
+                self._stor.ve[i][j] = int(cobj.get(VE_ATTRIBUTE))
                 
                 j += 1
                 if j == NUM_COLS:
@@ -273,14 +247,14 @@ class KScraping(object):
     
     def _ve_scraping(self):
         
-        if sum(self._ve_data[0]) == 0:
+        if sum(self._stor.ve[0]) == 0:
             req = self._prepare_request(VE_URL)
         
             bsObj = self._check_url(VE_URL, req)
             
             self._process_ve_page(bsObj)
             
-            print "Read: %dx%d" % (len(self._ve_data), len(self._ve_data[0]))
+            print "Read: %dx%d" % (len(self._stor.ve), len(self._stor.ve[0]))
 
     # ------------------------------------- QU scraping.
     def _process_qu_page(self, bsObj):
@@ -296,7 +270,7 @@ class KScraping(object):
             
             elif n >= QU_FIRST_COL and n <= QU_LAST_COL:
     
-                self._qu_data[i][j] = int(cobj.get_text())
+                self._stor.qu[i][j] = int(cobj.get_text())
                 
                 j += 1
                 if j == NUM_COLS:
@@ -307,14 +281,14 @@ class KScraping(object):
     
     def _qu_scraping(self):
         
-        if sum(self._qu_data[0]) == 0:
+        if sum(self._stor.qu[0]) == 0:
             req = self._prepare_request(QU_URL)
         
             bsObj = self._check_url(QU_URL, req)
             
             self._process_qu_page(bsObj)
             
-            print "Read: %dx%d" % (len(self._qu_data), len(self._qu_data[0]))
+            print "Read: %dx%d" % (len(self._stor.qu), len(self._stor.qu[0]))
             
     # ------------------------------------- Q1 scraping.
     def _process_q1_page(self, bsObj):
@@ -327,15 +301,15 @@ class KScraping(object):
             for i in range(NUM_ROWS - 1):
                 el = json_data[i]
                 
-                self._q1_data[i][0] = int(el[FIRST_FIELD])
-                self._q1_data[i][1] = int(el[SECOND_FIELD])
-                self._q1_data[i][2] = int(el[THIRD_FIELD])  
+                self._stor.q1[i][0] = int(el[FIRST_FIELD])
+                self._stor.q1[i][1] = int(el[SECOND_FIELD])
+                self._stor.q1[i][2] = int(el[THIRD_FIELD])  
         except UnicodeEncodeError as uee:
             print uee                   
     
     def _q1_scraping(self):
         
-        if sum(self._q1_data[0]) == 0:
+        if sum(self._stor.q1[0]) == 0:
             # The ULR depends on the index received.  
             url = Q1_URL + self.index
             
@@ -345,12 +319,12 @@ class KScraping(object):
             
             self._process_q1_page(bsObj)    
             
-            print "Read: %dx%d" % (len(self._q1_data), len(self._q1_data[0]))        
+            print "Read: %dx%d" % (len(self._stor.q1), len(self._stor.q1[0]))        
         
     # ------------------------------------- CQ scraping.
     def _process_cq_page(self, bsObj):
         
-        current_data = self._cq_data
+        current_data = self._stor.cq
         
         i = 0
         for ob in bsObj.findAll(CQ_OB, CQ_DICT):        
@@ -373,13 +347,13 @@ class KScraping(object):
                                 i += 1
                                 j = 0 
                     
-            current_data = self._cqp_data  
+            current_data = self._stor.cqp  
             i = 0
             j = 0                     
     
     def _cq_scraping(self):
         
-        if sum(self._cq_data[0]) == 0:
+        if sum(self._stor.cq[0]) == 0:
             url = CQ_URL
             
             req = self._prepare_request(url)
@@ -388,7 +362,7 @@ class KScraping(object):
             
             self._process_cq_page(bsObj)     
             
-            print "Read: %dx%d" % (len(self._q1_data), len(self._q1_data[0]))     
+            print "Read: %dx%d" % (len(self._stor.q1), len(self._stor.q1[0]))     
     
     # ------------------------------------- CL scraping.
     def _fill_cl_data(self, data, index, size, bsObj, cobj_data):
@@ -432,156 +406,21 @@ class KScraping(object):
         
         print "Read: %dx%d" % (len(data), len(data[0]))
         
-        return data  
-    
-    # ------------------------------------- Getting data from CL.     
-    def _get_data_from_cl(self, cl_data, name):
-        
-        data = []
-
-        for i, cdat in enumerate(cl_data):
-            if cdat[CL_NAME_COL] == name:
-                return cdat[:]
-                
-        return data        
-    
-    def get_p_data_from_b1(self, name, as_lo = True):
-        
-        data = self._get_data_from_cl(self._b1_data, name)
-        
-        if as_lo:
-            return [int(data[i]) for i in LO_P_RANGE]
-        else:
-            return [int(data[i]) for i in VI_P_RANGE] 
-    
-    def get_p_data_from_a2(self, name, as_lo = True):
-        
-        data = self._get_data_from_cl(self._a2_data, name)   
-        
-        if as_lo:
-            return [int(data[i]) for i in LO_P_RANGE]
-        else:
-            return [int(data[i]) for i in VI_P_RANGE]           
+        return data            
     
     # ------------------------------------- Properties.  
     @property
     def index(self):
-        return self._index
-                               
-    @property
-    def lm_data(self):    
-        return self._lm_data
-    
-    @lm_data.setter
-    def lm_data(self, data):
-        self._lm_data = data    
-    
-    @property
-    def ve_data(self):    
-        return self._ve_data
-    
-    @ve_data.setter
-    def ve_data(self, data):
-        self._ve_data = data     
-    
-    @property
-    def qu_data(self):    
-        return self._qu_data
-    
-    @qu_data.setter
-    def qu_data(self, data):
-        self._qu_data = data     
-    
-    @property
-    def q1_data(self):    
-        return self._q1_data
-    
-    @q1_data.setter
-    def q1_data(self, data):
-        self._q1_data = data    
-    
-    @property
-    def cq_data(self):    
-        return self._cq_data
-    
-    @cq_data.setter
-    def cq_data(self, data):
-        self._cq_data = data        
-    
-    @property
-    def cqp_data(self):    
-        return self._cqp_data  
-    
-    @cqp_data.setter
-    def cqp_data(self, data):
-        self._cqp_data = data             
-    
-    @property
-    def b1_data(self):    
-        return self._b1_data
-    
-    @b1_data.setter
-    def b1_data(self, data):
-        self._b1_data = data       
-    
-    @property
-    def a2_data(self):    
-        return self._a2_data
-    
-    @a2_data.setter
-    def a2_data(self, data):
-        self._a2_data = data     
-    
-    @property
-    def k_data(self):    
-        return self._k_data 
-    
-    @k_data.setter
-    def k_data(self, data):
-        self._k_data = data     
+        return self._index   
     
     @property
     def cl_data_ok(self):
-        return self._k_data == NUM_ROWS and self._b1_data == B1_SIZE and \
-            self._a2_data == A2_SIZE 
-    
-    def _save_scraping_data(self):
-        
-        out_file_name = SCRAPPED_DATA_FILE_PREFIX + self._index + \
-            SCRAPPED_DATA_FILE_EXT
-        
-        f = open(out_file_name,'w')
-        
-        f.write("%s %s %s\n\n" % (LM_TEXT, SCR_TXT_DELIM, str(self._lm_data)))
-        f.write("%s %s %s\n\n" % (VE_TEXT, SCR_TXT_DELIM, str(self._ve_data)))
-        f.write("%s %s %s\n\n" % (QU_TEXT, SCR_TXT_DELIM, str(self._qu_data)))
-        f.write("%s %s %s\n\n" % (Q1_TEXT, SCR_TXT_DELIM, str(self._q1_data)))
-        f.write("%s %s %s\n\n" % (CQ_TEXT, SCR_TXT_DELIM, str(self._cq_data)))
-        f.write("%s %s %s\n\n" % (CQP_TEXT, SCR_TXT_DELIM, str(self._cqp_data)))
-        f.write("%s %s %s\n\n" % (B1_TEXT, SCR_TXT_DELIM, str(self._b1_data)))
-        f.write("%s %s %s\n" % (A2_TEXT, SCR_TXT_DELIM, str(self._a2_data)))
-        
-        f.close()   
-        
-        print "Data scrapped saved in: %s" % out_file_name     
+        return self._stor.k == NUM_ROWS and self._stor.b1 == B1_SIZE and \
+            self._stor.a2 == A2_SIZE     
 
     def _get_res_file_name(self, index):
         
         return RES_FILE_PREFIX + index + INPUT_FILE_NAME_EXT
-    
-    def _save_res_data(self, file_name, data):
-        
-        print "Saving file: %s" % file_name
-        
-        f = open(file_name,'w')
-        
-        for d in data:
-            if type(d) is int:
-                f.write("%d\n" % d)
-            else:
-                f.write("%s\n" % unicodedata.normalize('NFKD', d).encode('ascii','ignore'))
-        
-        f.close() 
         
     def _scrap_res(self, max_range, file_dir, url_prefix, data_size): 
         
@@ -599,7 +438,7 @@ class KScraping(object):
                 
                 # If data could not be get, exit.
                 if len(data) > data_size * 4:                     
-                    self._save_res_data(file_name, data)
+                    save_res_data(file_name, data)
                 else:
                     print "Exiting as no data has been retrieved for: %s." % \
                         file_name
@@ -616,11 +455,11 @@ class KScraping(object):
         """Scraping CL data.
         """
         
-        if len(self._b1_data) != B1_SIZE:
-            self._b1_data = self._cl_scraping(CL_B1_URL, B1_SIZE)
+        if len(self._stor.b1) != B1_SIZE:
+            self._stor.b1 = self._cl_scraping(CL_B1_URL, B1_SIZE)
 
-        if len(self._a2_data) != A2_SIZE:
-            self._a2_data = self._cl_scraping(CL_A2_URL, A2_SIZE)
+        if len(self._stor.a2) != A2_SIZE:
+            self._stor.a2 = self._cl_scraping(CL_A2_URL, A2_SIZE)
         
     def scrap_all_sources(self):
         """Scraping data from multiple sources.
@@ -641,25 +480,24 @@ class KScraping(object):
         self.scrap_cl_data()          
         
         if self.data_ok():
-            # As a final step, save all the data scrapped.
-            self._save_scraping_data()      
+            save_scraping_data(self._index, self._stor)      
         
     def data_ok(self):
          
-        return len(self._k_data) == NUM_ROWS and \
-            len(self._lm_data) == NUM_ROWS and \
-            len(self._ve_data) == NUM_ROWS and \
-            len(self._qu_data) == NUM_ROWS and \
-            len(self._q1_data) == NUM_ROWS and \
-            len(self._cq_data) == NUM_ROWS and \
-            len(self._cqp_data) == NUM_ROWS and \
-            len(self._b1_data) == B1_SIZE and \
-            len(self._a2_data) == A2_SIZE
+        return len(self._stor.k) == NUM_ROWS and \
+            len(self._stor.lm) == NUM_ROWS and \
+            len(self._stor.ve) == NUM_ROWS and \
+            len(self._stor.qu) == NUM_ROWS and \
+            len(self._stor.q1) == NUM_ROWS and \
+            len(self._stor.cq) == NUM_ROWS and \
+            len(self._stor.cqp) == NUM_ROWS and \
+            len(self._stor.b1) == B1_SIZE and \
+            len(self._stor.a2) == A2_SIZE
             
     def __str__(self):
         
         return "%s: %d %d %d %d %d %d %d %d %d" % \
-        (type(self).__name__, len(self._k_data), len(self._lm_data), \
-            len(self._ve_data), len(self._qu_data), len(self._q1_data), \
-            len(self._cq_data), len(self._cqp_data), len(self._b1_data), \
-            len(self._a2_data))        
+        (type(self).__name__, len(self._stor.k), len(self._stor.lm), \
+            len(self._stor.ve), len(self._stor.qu), len(self._stor.q1), \
+            len(self._stor.cq), len(self._stor.cqp), len(self._stor.b1), \
+            len(self._stor.a2))        

@@ -22,20 +22,17 @@ import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 
 from ctes import *
+from files import *
+from storage import Storage
 
 class ProPre(object):
     
-    def __init__(self, k_data, b1_data, a2_data, index):
+    def __init__(self, index, stor):
         """Constructor.                        
         """    
         
-        self._k_data = k_data
-        self._b1_data = b1_data
-        self._a2_data = a2_data
         self._index = index
-        
-        self._pro = []
-        self._pre = []
+        self._stor = stor
             
     @staticmethod
     def get_cl_data_for_name(name, cl_data):
@@ -70,7 +67,7 @@ class ProPre(object):
                           vi_data[THIRD_VI] * VI_WEIGHT))]    
         
     @staticmethod
-    def calc_final_p(pro_data, pre_data, p_type):
+    def calc_final_p(p_type):
         
         if p_type == TYPE_1_COL: 
             p_with = P_WITH_B1
@@ -79,9 +76,9 @@ class ProPre(object):
         
         p_num = []
         
-        for i, pd in enumerate(pro_data):
+        for i, pd in enumerate(self._stor.pro):
             
-            p_num.append(( int(pd) / 100.0 ) * ( int(pre_data[i]) / 100.0 ))
+            p_num.append(( int(pd) / 100.0 ) * ( int(self._stor.pre[i]) / 100.0 ))
             
         if p_with > 0.0:
             p_num = [ p / p_with for p in p_num ]
@@ -91,50 +88,7 @@ class ProPre(object):
         if p_sum > 0:
             p_num = [ int(round(100.0 * p / p_sum)) for p in p_num ]  
             
-        return p_num              
-    
-    def _save_data(self, out_file_name, data):
-        
-        try:
-            
-            with open(out_file_name, 'w') as f:        
-                for d in data:            
-                    f.write("%s\n" % CSV_DELIMITER.join(str(i) for i in d))
-            
-            print "File saved: %s" % out_file_name
-               
-        except IOError as ioe:
-             print "Error saving file: '%s'" % out_file_name              
-        
-    def _read_res_file(self, file_name):
-        
-        print "Reading ref file: %s" % file_name
-                    
-        res_data = []
-    
-        try:
-            with open(file_name, 'rb') as f:
-                
-                reader = csv.reader(f)
-            
-                for row in reader:
-                    
-                    # Ignore header.
-                    if row[J_COL_RES].isdigit():
-                    
-                        red_row = [row[i] for i in RES_ELEMENTS]
-                        
-                        res_data.append(red_row)
-            
-        except csv.Error:
-            print "ERROR: reading file %s" % file_name
-        except IOError:
-            print "ERROR: reading file %s" % file_name
-            
-        if len(res_data):
-            print "Read: %dx%d" % (len(res_data), len(res_data[0]))
-                
-        return res_data        
+        return p_num                                  
     
     def _get_data_for_pre(self, name, cl_data, res_data, is_lo):
         
@@ -268,25 +222,23 @@ class ProPre(object):
             
             calc_vi_data, vi_pos = ProPre.get_data_for_pro(k, cl_data, False) 
             
-            self._pro.append(ProPre.combine_lo_vi(calc_lo_data, calc_vi_data))
+            self._stor.pro.append(ProPre.combine_lo_vi(calc_lo_data, calc_vi_data))
             
         out_file_name = PRO_FILE_NAME_PREFIX + self._index + INPUT_FILE_NAME_EXT
         
-        self._save_data(out_file_name, self._pro)
-        
-        return self._pro
+        save_data_to_csv(out_file_name, self._pro)
     
     def generate_pre_data(self):  
         
-        b1_res = self._read_res_file(B1_RES_FILE)
-        a2_res = self._read_res_file(A2_RES_FILE)
+        b1_res = read_res_file(B1_RES_FILE)
+        a2_res = read_res_file(A2_RES_FILE)
         
-        for k in self._k_data:
+        for k in self._stor.k:
             if k[TYPE_COL] == TYPE_1_COL:  
-                cl_data = self._b1_data
+                cl_data = self._stor.b1
                 res_data = b1_res
             else:
-                cl_data = self._a2_data
+                cl_data = self._stor.a2
                 res_data = a2_res
                 
             lo_data, lo_pos, lo_cl = \
@@ -301,10 +253,8 @@ class ProPre(object):
 
             vi_pre = self._get_pre_values(vi_data, lo_pos, lo_cl, vi_pos, vi_cl)
             
-            self._pre.append(ProPre.combine_lo_vi(lo_pre, vi_pre))
+            self._stor.pre.append(ProPre.combine_lo_vi(lo_pre, vi_pre))
             
         out_file_name = PRE_FILE_NAME_PREFIX + self._index + INPUT_FILE_NAME_EXT
             
-        self._save_data(out_file_name, self._pre)            
-
-        return self._pre
+        self.save_data_to_csv(out_file_name, self._pre)            

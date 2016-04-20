@@ -195,7 +195,6 @@ def generate_ap(index_name, data_to_predict, final_pred):
     
     calculate_ap(pre_data_for_ap, index_name)  
     
-
 def compile_un_data(data_to_predict, src_hist_data, pro_data):
     hist_data = []
     cl_data = []
@@ -220,8 +219,6 @@ def compile_un_data(data_to_predict, src_hist_data, pro_data):
         to_pred.append(row)
     
     return hist_data, cl_data, to_pred, dtp
-
-
 
 def save_un(data_to_predict, prd, index):
     
