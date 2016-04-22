@@ -21,7 +21,7 @@
 import csv
 
 from ctes import *
-from storage import Storage
+from storage import *
 
 def read_input_file(input_file_name):
              
@@ -55,19 +55,19 @@ def read_k_file(index, stor):
     
     k_file_name = K_FILE_NAME_PREFIX + index + INPUT_FILE_NAME_EXT
     
-    store.k = read_input_file(k_file_name) 
+    stor.k = read_input_file(k_file_name) 
 
 def read_pro_file(index, stor):
     
     pro_file_name = PRO_FILE_NAME_PREFIX + index + INPUT_FILE_NAME_EXT
     
-    store.pro = read_input_file(pro_file_name)
+    stor.pro = read_input_file(pro_file_name)
 
 def read_pre_file(index, stor):
     
     pre_file_name = PRE_FILE_NAME_PREFIX + index + INPUT_FILE_NAME_EXT
     
-    store.pre = read_input_file(pre_file_name)
+    stor.pre = read_input_file(pre_file_name)
     
 def read_res_file(file_name):
     
@@ -131,7 +131,7 @@ def read_data_from_file(index, stor):
     lines = []
     
     # Read K data from local.
-    scr.k_data = read_k_file(index)    
+    stor.k_data = read_k_file(index, stor)    
     
     # Reading from local file the rest of data.
     file_name = SCRAPPED_DATA_FILE_PREFIX + index + SCRAPPED_DATA_FILE_EXT  

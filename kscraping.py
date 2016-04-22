@@ -26,7 +26,7 @@ import json
 import os
 
 from ctes import *
-from storage import Storage
+from storage import *
 from files import *
 
 class KScraping(object):

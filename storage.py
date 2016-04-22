@@ -19,7 +19,7 @@
 """
 
 from files import *
-from kscrapping import *
+from kscraping import *
 from resum import *
 
 class Storage(object):
@@ -36,8 +36,8 @@ class Storage(object):
         self._cq = [[0 for _ in range(NUM_COLS)] for _ in range(NUM_ROWS)]
         self._cqp = [[0 for _ in range(NUM_COLS)] for _ in range(NUM_ROWS)]
         self._mean = [[0 for _ in range(NUM_COLS)] for _ in range(NUM_ROWS)]
-        self._b1_cl = []
-        self._a2_cl = []
+        self._b1 = []
+        self._a2 = []
         self._p = []
         self._ap = []
         self._un = []

@@ -23,7 +23,7 @@ import sys
 
 from ctes import *
 from kparser import *
-from storega import Storage
+from storage import *
 from kscraping import *
 from compdata import *
 from propre import *
@@ -48,7 +48,7 @@ def calc_with_all_sources(index, scr, stor):
     if int(index) > DEFAULT_INDEX:       
         read_data_from_file(index, stor)    
     
-    if not stor.data_ok():
+    if not stor.ext_data_ok:
         scr.scrap_all_sources()
         
     if stor.ext_data_ok:
@@ -64,18 +64,17 @@ def calc_with_all_sources(index, scr, stor):
             compdat.compose_all_data()
             
             final_data = compdat.get_final_data()
+                
+            ap_data = []
             
-            for i, aps in enumerate(AP_SUFFIXES):
-                
-                ap_data = []
-                
-                for j, fd in enumerate(final_data):
-                    row = fd
-                    ap_data.append([row[AP_LI_COL]] + 
-                                   [row[AP_FIRST_P_COL + k + i * NAME_DATA_LEN] \
-                                        for k in range(NAME_DATA_LEN) ])
-                
-                calculate_ap(ap_data, scr.index + aps)
+            for j, fd in enumerate(final_data):
+                row = fd
+                print row
+                ap_data.append([row[AP_LI_COL]] + 
+                               [row[AP_FIRST_P_COL + k] \
+                                    for k in range(NAME_DATA_LEN) ])
+            
+            calculate_ap(ap_data, scr.index)
         else:
             print "ERROR: No data to compose."
     else:
@@ -129,7 +128,7 @@ def main(progargs):
             calc_with_own_sources(progargs.index, scr, stor)   
             
         print "Calculating prun ..."     
-        do_prun(progargs.index, read_pro_file(scr.index))
+        do_prun(progargs.index, read_pro_file(scr.index, stor))
     else:
         print "No index provided. Only retrieving res ..."
     
@@ -147,5 +146,5 @@ if __name__ == "__main__":
         progargs = ProgramArguments()
         
         sys.exit(main(progargs))   
-    except kparser.ProgramArgumentsException as pae:
+    except ProgramArgumentsException as pae:
         print pae       

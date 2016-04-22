@@ -61,7 +61,7 @@ class ComposeData(object):
     def get_p_data_from_a2(self, name, as_lo = True):
         
         data = self._get_data_from_cl(self._stor.a2, name)   
-        c
+        
         if as_lo:
             return [int(data[i]) for i in LO_P_RANGE]
         else:
@@ -106,11 +106,11 @@ class ComposeData(object):
             
             # Get res for each name.                           
             if self._stor.k[i][TYPE_COL] == TYPE_1_COL:
-                self._lo_res = self.get_p_data_from_b1(self._stor.k[i][NAME_LO_COL])
-                self._vi_res = self.get_p_data_from_b1(self._stor.k[i][NAME_VI_COL], False)
+                self._lo_res.append(self.get_p_data_from_b1(self._stor.k[i][NAME_LO_COL]))
+                self._vi_res.append(self.get_p_data_from_b1(self._stor.k[i][NAME_VI_COL], False))
             else:
-                self._lo_res = self.get_p_data_from_a2(self._stor.k[i][NAME_LO_COL])
-                self._vi_res = self.get_p_data_from_a2(self._stor.k[i][NAME_VI_COL], False) 
+                self._lo_res.append(self.get_p_data_from_a2(self._stor.k[i][NAME_LO_COL]))
+                self._vi_res.append(self.get_p_data_from_a2(self._stor.k[i][NAME_VI_COL], False))
 
     def _calculate(self): 
         
@@ -123,22 +123,24 @@ class ComposeData(object):
                 
             p_lo_vi = ProPre.combine_lo_vi(p_lo, p_vi)
             
-            p_final = ProPre.calc_final_p(p_lo_vi, self._stor.pre[i], p_type)             
+            p_final = ProPre.calc_final_p(self._stor.pro[i],
+                                          self._stor.pre[i],
+                                          self._stor.k[i][TYPE_COL])             
                 
             self._stor.p.append([p_final[0], p_final[1], p_final[2]])                                                   
                
     def _write_data(self):
         
         output_file_name = PREFIX_OUTPUT_FILE_NAME + \
-            self._scr.index + OUTPUT_FILE_NAME_EXT        
+            self._index + OUTPUT_FILE_NAME_EXT        
         
         print "Saving results in: %s" % output_file_name    
                     
         with open(output_file_name, "w") as csvfile:
             csvwriter = csv.writer(csvfile, delimiter=CSV_DELIMITER)            
             
-            for p in self._stor.p:
-                csvwriter.writerow(p)
+            for i, p in enumerate(self._stor.p):
+                csvwriter.writerow([self._stor.k[i][TYPE_COL]] + p)
 
     def get_final_data(self):
         

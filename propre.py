@@ -67,7 +67,7 @@ class ProPre(object):
                           vi_data[THIRD_VI] * VI_WEIGHT))]    
         
     @staticmethod
-    def calc_final_p(p_type):
+    def calc_final_p(pro, pre, p_type):
         
         if p_type == TYPE_1_COL: 
             p_with = P_WITH_B1
@@ -76,9 +76,9 @@ class ProPre(object):
         
         p_num = []
         
-        for i, pd in enumerate(self._stor.pro):
+        for i, pd in enumerate(pro):
             
-            p_num.append(( int(pd) / 100.0 ) * ( int(self._stor.pre[i]) / 100.0 ))
+            p_num.append(( int(pd) / 100.0 ) * ( int(pre[i]) / 100.0 ))
             
         if p_with > 0.0:
             p_num = [ p / p_with for p in p_num ]
@@ -211,12 +211,12 @@ class ProPre(object):
 
     def generate_pro_data(self):
         
-        for k in self._k_data:             
+        for k in self._stor.k:             
                    
             if k[TYPE_COL] == TYPE_1_COL:  
-                cl_data = self._b1_data
+                cl_data = self._stor.b1
             else:
-                cl_data = self._a2_data
+                cl_data = self._stor.a2
                 
             calc_lo_data, lo_pos = ProPre.get_data_for_pro(k, cl_data, True)         
             
@@ -226,7 +226,7 @@ class ProPre(object):
             
         out_file_name = PRO_FILE_NAME_PREFIX + self._index + INPUT_FILE_NAME_EXT
         
-        save_data_to_csv(out_file_name, self._pro)
+        save_data_to_csv(out_file_name, self._stor.pro)
     
     def generate_pre_data(self):  
         
@@ -257,4 +257,4 @@ class ProPre(object):
             
         out_file_name = PRE_FILE_NAME_PREFIX + self._index + INPUT_FILE_NAME_EXT
             
-        self.save_data_to_csv(out_file_name, self._pre)            
+        save_data_to_csv(out_file_name, self._stor.pre)            
