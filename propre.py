@@ -22,7 +22,7 @@ import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 
 from ctes import *
-from files import *
+from kfiles import *
 from storage import Storage
 
 class ProPre(object):

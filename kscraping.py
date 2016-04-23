@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-"""QScraping class.
+"""Class to scrap web sites.
 """
 
 import requests
@@ -27,7 +27,7 @@ import os
 
 from ctes import *
 from storage import *
-from files import *
+from kfiles import *
 
 class KScraping(object):
     """Scraping on some web pages.
@@ -71,7 +71,7 @@ class KScraping(object):
             print(ue)
         else:
             try:
-                bsObj = BeautifulSoup(req.text)
+                bsObj = BeautifulSoup(req.text, "lxml")
             except AttributeError as ae:
                 print(ae)
                 
@@ -438,11 +438,28 @@ class KScraping(object):
                 
                 # If data could not be get, exit.
                 if len(data) > data_size * 4:                     
-                    save_res_data(file_name, data)
+                    self._save_res_data(file_name, data)
                 else:
                     print "Exiting as no data has been retrieved for: %s." % \
                         file_name
-                    break                     
+                    break     
+                
+    def _save_res_data(self, out_file_name, data):
+        
+        print "Saving file: %s" % out_file_name
+        
+        try:
+            
+            with open(out_file_name, 'w') as f:
+        
+                for d in data:
+                    if type(d) is int:
+                        f.write("%d\n" % d)
+                    else:
+                        f.write("%s\n" % unicodedata.normalize('NFKD', d).encode('ascii','ignore'))
+        
+        except IOError as ioe:
+             print "Error saving file: '%s'" % out_file_name                 
     
     # ------------------------------------- Public functions.    
     def scrap_res_data(self):

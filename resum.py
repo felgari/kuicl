@@ -26,7 +26,7 @@ import glob
 NUM_ARGS = 2
 
 from ctes import *
-from files import *
+from kfiles import *
 from kscraping import *
     
 class Res(object):
@@ -435,7 +435,7 @@ def process_k_data(index, res):
         
 def retrieve_res():   
     
-    scr = KScraping(0)    
+    scr = KScraping(0, None)    
     scr.scrap_res_data()      
     
     res = Resum()

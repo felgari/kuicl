@@ -28,7 +28,7 @@ from kscraping import *
 from compdata import *
 from propre import *
 from ap import *
-from files import *
+from kfiles import *
 from resum import *
 from prun import do_prun
 

@@ -18,7 +18,7 @@
 """Class to store the data used during the calculations.
 """
 
-from files import *
+from kfiles import *
 from kscraping import *
 from resum import *
 
