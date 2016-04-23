@@ -43,6 +43,13 @@ class Storage(object):
         self._un = []
         self._res = []
         
+    def __str__(self):
+        return ("k: %d pro: %d pre: %d lm: %d ve: %d qu: %d q1: %d cq: %d cqp: %d mean: %d b1: %d a2: %d p: %d ap: %d un: %d res: %d" %
+            (len(self._k), len(self._pro), len(self._pre), len(self._lm), 
+             len(self._ve), len(self._qu), len(self._q1), len(self._cq),
+             len(self._cqp), len(self._mean), len(self._b1), len(self._a2),
+             len(self._p), len(self._ap), len(self._un), len(self._res)))
+        
     @property
     def k(self):
         return self._k

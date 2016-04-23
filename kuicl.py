@@ -125,10 +125,10 @@ def main(progargs):
             calc_with_all_sources(progargs.index, scr, stor)    
         else:
             print "Using only local sources ..."
-            calc_with_own_sources(progargs.index, scr, stor)   
-            
+            calc_with_own_sources(progargs.index, scr, stor)
+                
         print "Calculating prun ..."     
-        do_prun(progargs.index, read_pro_file(scr.index, stor))
+        do_prun(progargs.index, stor)
     else:
         print "No index provided. Only retrieving res ..."
     

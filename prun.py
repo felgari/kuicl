@@ -26,7 +26,7 @@ from sklearn.ensemble import RandomForestClassifier
 
 from ctes import *
 from ap import *
-from files import *
+from kfiles import *
 
 NUM_ARGS = 2
 
@@ -43,7 +43,9 @@ def read_hist_data(file_name):
             
             for row in reader:   
                  
-                data.append(row)
+                data.append([int(x) if i != HIST_PRED_R_COL and len(x) 
+                             and x.isdigit() 
+                             else x for i, x in enumerate(row)])
                 
         print "Read %d lines from : %s" % (len(data), file_name)
                 
@@ -55,26 +57,6 @@ def read_hist_data(file_name):
     
     return data
 
-def read_data(index):
-    
-    data = []
-    
-    file_name = PREFIX_OUTPUT_FILE_NAME + index + OUTPUT_FILE_NAME_EXT
-    
-    print "Reading data from file: %s" % file_name
-    
-    with open(file_name, 'rb') as f:
-        reader = csv.reader(f)
-        try:
-            for row in reader:
-                
-                data.append([row[i] for i in COLS_FROM_DATA])
-        
-        except csv.Error:
-            print "ERROR: reading file %s" % file_name
-            
-    return data
-
 def is_pre(hist_row):
     
     r = hist_row[HIST_PRED_R_COL]
@@ -84,19 +66,6 @@ def is_pre(hist_row):
     min_pos = data_ref.index(min(data_ref))
     
     return r_pos != min_pos
-
-def get_pre_unpre(hist_data):
-    
-    pre = []
-    unpre = []
-    
-    for d in hist_data:
-        if is_pre(d):
-            pre.append(d[:HIST_PRED_REF_LAST_COL])
-        else:
-            unpre.append(d[:HIST_PRED_REF_LAST_COL])
-    
-    return pre, unpre
 
 def save_res(data, out_file_name):
     
@@ -171,11 +140,11 @@ def predict(to_predict, pred_data):
         
 def generate_pred(data_to_predict, pre_data, out_file_name):  
     
-    pre_data_t1 = [x for x in pre_data if x[HIST_PRED_L_COL] == TYPE_1_COL]
-    pre_data_t2 = [x for x in pre_data if x[HIST_PRED_L_COL] == TYPE_2_COL]    
+    pre_data_t1 = [x for x in pre_data if x[HIST_PRED_L_COL] == int(TYPE_1_COL)]
+    pre_data_t2 = [x for x in pre_data if x[HIST_PRED_L_COL] == int(TYPE_2_COL)]    
     
-    data_t1 = [x for x in data_to_predict if x[DAT_PRED_L_COL] == TYPE_1_COL]
-    data_t2 = [x for x in data_to_predict if x[DAT_PRED_L_COL] == TYPE_2_COL]
+    data_t1 = [x for x in data_to_predict if x[HIST_PRED_L_COL] == int(TYPE_1_COL)]
+    data_t2 = [x for x in data_to_predict if x[HIST_PRED_L_COL] == int(TYPE_2_COL)]
     
     pred_t1 = predict(data_t1, pre_data_t1)
     pred_t2 = predict(data_t2, pre_data_t2)    
@@ -189,15 +158,17 @@ def generate_pred(data_to_predict, pre_data, out_file_name):
 def generate_ap(index_name, data_to_predict, final_pred):
     
     pre_data_for_ap = []
-    
+
     for i, dtp in enumerate(data_to_predict):
         pre_data_for_ap.append([dtp[HIST_PRED_L_COL]] + final_pred[i])
     
     calculate_ap(pre_data_for_ap, index_name)  
     
 def compile_un_data(data_to_predict, src_hist_data, pro_data):
+    
     hist_data = []
     cl_data = []
+    
     for d in src_hist_data:
         r = d[HIST_PRED_R_COL]
         col = UN_HIST_CONV[r]
@@ -255,7 +226,9 @@ def generate_un(data_to_predict, hist_data, cl_data, to_pred, index):
     
     save_un(data_to_predict, prd, index)   
 
-def calculate_un(data_to_predict, src_hist_data, pro_data, index):    
+def calculate_un(data_to_predict, hist_data, pro_data, index):    
+    
+    src_hist_data = [x for x in hist_data if len(x[HIST_PRED_R_COL])]
     
     if len(data_to_predict):
         if len(src_hist_data):
@@ -273,23 +246,21 @@ def calculate_un(data_to_predict, src_hist_data, pro_data, index):
     else:
         print "ERROR: No data to calculate UN"
 
-def do_prun(index, pro_data):
-    
-    data_to_predict = read_data(index)    
+def do_prun(index, stor):
     
     hist_data = read_hist_data(AP_HIST_FILE)
     
-    pre_data, unpre_data = get_pre_unpre(hist_data) 
+    data_to_pred = [x[:HIST_PRED_REF_LAST_COL] 
+                       for x in hist_data if not len(x[HIST_PRED_R_COL])]
     
-    out_file_name = PRUN_OUT_FILE_NAME_PREFIX_1 + index + PRUN_OT_FILE_EXT
-    final_pred = generate_pred(data_to_predict, pre_data, out_file_name)          
-    generate_ap(index + AP_FILE_PRE_NAME_SUFFIX, data_to_predict, final_pred)     
+    data_for_pred = [x[:HIST_PRED_REF_LAST_COL] 
+                       for x in hist_data if len(x[HIST_PRED_R_COL])]
     
-    out_file_name = PRUN_OUT_FILE_NAME_PREFIX_2 + index + PRUN_OT_FILE_EXT
-    final_unpred = generate_pred(data_to_predict, unpre_data, out_file_name)  
-    generate_ap(index + AP_FILE_UNPRE_NAME_SUFFIX, data_to_predict, final_unpred) 
+    out_file_name = PRUN_OUT_FILE_NAME_PREFIX + index + PRUN_OT_FILE_EXT
+    final_pred = generate_pred(data_to_pred, data_for_pred, out_file_name)       
+    generate_ap(index + AP_FILE_PRE_NAME_SUFFIX, data_to_pred, final_pred)     
 
-    calculate_un(read_k_file(index), hist_data, pro_data, index)
+    calculate_un(stor.k, hist_data, stor.pro, index)
 
 if __name__ == "__main__":
     
