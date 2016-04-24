@@ -55,10 +55,10 @@ class ProgramArguments(object):
         self.__parser.add_argument("-i", dest="i", metavar="index",
                                    default=DEFAULT_INDEX,
                                    help="Index to use.", type=int, 
-                                   choices=xrange(1, 100))            
+                                   choices=xrange(1, 100))              
         
-        self.__parser.add_argument("-a", dest="a", action="store_true", 
-                                   help="Use all sources.")                     
+        self.__parser.add_argument("-r", dest="r", action="store_true", 
+                                   help="Retrieve res.")                    
         
         self.__args = self.__parser.parse_args()
         
@@ -68,11 +68,11 @@ class ProgramArguments(object):
         
     @property
     def index(self):
-        return str(self.__args.i)    
+        return str(self.__args.i)          
     
     @property
-    def use_all_sources(self):
-        return self.__args.a                        
+    def retrieve_res(self):
+        return self.__args.r                 
  
     def print_usage(self):
         """Print arguments options.
