@@ -21,28 +21,19 @@
 import requests
 import urllib2
 from bs4 import BeautifulSoup
-import unicodedata
+import unicodedata as un
 import json
-import os
 
 from ctes import *
-from storage import *
 from kfiles import *
 
 class KScraping(object):
     """Scraping on some web pages.
     """
     
-    def __init__(self, index, stor):
-        """Constructor.                        
-        """    
-        
-        self._index = index
-        
-        self._stor = stor
-    
     # ------------------------------------- Common functions.
-    def _prepare_request(self, url):
+    @staticmethod
+    def prepare_request(url):
         """Prepare a http request to the url received.
         """
         
@@ -50,7 +41,8 @@ class KScraping(object):
     
         return session.get(url, headers=REQUEST_HEADERS)    
     
-    def _check_url(self, url, req):
+    @staticmethod
+    def check_url(url, req):
         """Check connection and retrieving from the url received.
         
         Args:
@@ -78,7 +70,8 @@ class KScraping(object):
         return bsObj 
     
     # ------------------------------------- K scraping.        
-    def _process_k_page(self, bsObj):
+    @staticmethod
+    def _process_k_page( bsObj):
         
         success = True
         
@@ -86,27 +79,25 @@ class KScraping(object):
         
         first = []
         second = []
-        data = []
+        k_data = []
         
         for cobj in bsObj.findAll(K_COBJ, K_COBJ_DICT):
             for eobj in cobj.findAll(K_EOBJ, K_EOBJ_NAME):
                 txt = eobj.get_text().strip()
-                txt_norm = unicodedata.normalize('NFKD', txt).encode('ascii','ignore')
+                txt_norm = un.normalize('NFKD', txt).encode('ascii','ignore')
                 pos2 = txt_norm.find(K_POS_1_SEP)
                 pos1 = txt_norm[:pos2].rfind(K_POS_2_SEP)
                 temp_index = txt_norm[pos1+1:pos2].strip()
-                
-        print temp_index
         
         for cobj in bsObj.findAll(K_COBJ_INF, K_COBJ_INF_DICT):
             for eobj in cobj.findAll(K_EOBJ_1, K_EOBJ_1_NAME):
                 txt = eobj.get_text().strip()
-                txt_norm = unicodedata.normalize('NFKD', txt).encode('ascii','ignore')
+                txt_norm = un.normalize('NFKD', txt).encode('ascii','ignore')
                 first.append(txt_norm)
                 
             for eobj in cobj.findAll(K_EOBJ_2, K_EOBJ_2_NAME):
                 txt = eobj.get_text().strip()
-                txt_norm = unicodedata.normalize('NFKD', txt).encode('ascii','ignore')
+                txt_norm = un.normalize('NFKD', txt).encode('ascii','ignore')
                 second.append(txt_norm)
             
         if len(first) == len(second):
@@ -121,31 +112,29 @@ class KScraping(object):
                     first_name = K_A2_STR_CONVERT[first_it]
                     second_name = K_A2_STR_CONVERT[second[i]]
 
-                data.append([str(i), type_el, first_name, second_name])
+                k_data.append([str(i), type_el, first_name, second_name])
         else:
-            print "ERROR reading K, data not paired."       
-            success = False
+            print "ERROR reading K, k_data not paired."       
+            success = False 
             
-        self._stor.k = data
-        
-        success = save_k_data(temp_index, data)   
-        
-        if success:
-            self._index = temp_index    
-            
-        return success  
+        return k_data, temp_index  
     
-    def _k_scraping(self):
-    
-        if len(self._stor.k) != NUM_ROWS:
-            req = self._prepare_request(K_URL)
+    @staticmethod
+    def k_scraping():
         
-            bsObj = self._check_url(K_URL, req)
-            
-            try:
-                self._process_k_page(bsObj)
-            except KeyError as ke:
-                print "ERROR in k: %s" % ke
+        k_data = []
+        index = ''
+    
+        req = KScraping.prepare_request(K_URL)
+    
+        bsObj = KScraping.check_url(K_URL, req)
+        
+        try:
+            k_data, index = KScraping._process_k_page(bsObj)
+        except KeyError as ke:
+            print "ERROR retrieving k: %s" % ke
+                
+        return k_data, index
     
     # ------------------------------------- Re scraping.        
     def _process_re_page(self, bsObj):
@@ -188,11 +177,12 @@ class KScraping(object):
                     
         return data
     
-    def _re_scraping(self, url):
+    @staticmethod
+    def res_scraping(url):
         
-        req = self._prepare_request(url)
+        req = KScraping.prepare_request(url)
     
-        bsObj = self._check_url(url, req)
+        bsObj = KScraping.check_url(url, req)
         
         return self._process_re_page(bsObj)    
     
@@ -223,9 +213,9 @@ class KScraping(object):
     def _lm_scraping(self):
         
         if sum(self._stor.lm[0]) == 0:
-            req = self._prepare_request(LM_URL)
+            req = self.prepare_request(LM_URL)
         
-            bsObj = self._check_url(LM_URL, req)
+            bsObj = self.check_url(LM_URL, req)
             
             self._process_lm_page(bsObj)
             
@@ -248,9 +238,9 @@ class KScraping(object):
     def _ve_scraping(self):
         
         if sum(self._stor.ve[0]) == 0:
-            req = self._prepare_request(VE_URL)
+            req = self.prepare_request(VE_URL)
         
-            bsObj = self._check_url(VE_URL, req)
+            bsObj = self.check_url(VE_URL, req)
             
             self._process_ve_page(bsObj)
             
@@ -282,9 +272,9 @@ class KScraping(object):
     def _qu_scraping(self):
         
         if sum(self._stor.qu[0]) == 0:
-            req = self._prepare_request(QU_URL)
+            req = self.prepare_request(QU_URL)
         
-            bsObj = self._check_url(QU_URL, req)
+            bsObj = self.check_url(QU_URL, req)
             
             self._process_qu_page(bsObj)
             
@@ -313,9 +303,9 @@ class KScraping(object):
             # The ULR depends on the index received.  
             url = Q1_URL + self.index
             
-            req = self._prepare_request(url)
+            req = self.prepare_request(url)
         
-            bsObj = self._check_url(url, req)
+            bsObj = self.check_url(url, req)
             
             self._process_q1_page(bsObj)    
             
@@ -334,7 +324,7 @@ class KScraping(object):
                     txt = eobj.get_text().strip() 
                     if i < NUM_ROWS - 1:
                         if len(txt):
-                            txt_nor = unicodedata.normalize('NFKD', txt).encode('ascii','ignore')
+                            txt_nor = un.normalize('NFKD', txt).encode('ascii','ignore')
                             
                             pos = txt_nor.find(CQ_SEP)
                             if pos > 0:
@@ -356,16 +346,17 @@ class KScraping(object):
         if sum(self._stor.cq[0]) == 0:
             url = CQ_URL
             
-            req = self._prepare_request(url)
+            req = self.prepare_request(url)
         
-            bsObj = self._check_url(url, req)        
+            bsObj = self.check_url(url, req)        
             
             self._process_cq_page(bsObj)     
             
             print "Read: %dx%d" % (len(self._stor.q1), len(self._stor.q1[0]))     
     
-    # ------------------------------------- CL scraping.
-    def _fill_cl_data(self, data, index, size, bsObj, cobj_data):
+    # ------------------------------------- Cl scraping.
+    @staticmethod
+    def _fill_cl_data(data, index, size, bsObj, cobj_data):
         
         temp_lst = []
         
@@ -375,9 +366,10 @@ class KScraping(object):
         for i in range(size):
             data[i][index] = int(temp_lst[i])                  
     
-    def _process_cl_page(self, bsObj, size):
+    @staticmethod
+    def _process_cl_page(bsObj, size):
         
-        data = [[0 for _ in range(NUM_COLS_CL)] for _ in range(size)]
+        cl_data = [[0 for _ in range(NUM_COLS_CL)] for _ in range(size)]
         
         temp_lst = []        
         
@@ -386,103 +378,45 @@ class KScraping(object):
             
         for i in range(size):
             try:
-                data[i][CL_POS_COL] = i + 1
-                data[i][CL_NAME_COL] = CL_STR_CONVERT[temp_lst[i]]
+                cl_data[i][CL_POS_COL] = i + 1
+                cl_data[i][CL_NAME_COL] = CL_STR_CONVERT[temp_lst[i]]
             except KeyError as ke:
                 print "ERROR: %s" % ke                  
            
         for i, elt in enumerate(CL_ELEMENTS):            
-            self._fill_cl_data(data, i + CL_INDEX_P_LO, size, bsObj, elt) 
+            KScraping._fill_cl_data(cl_data, i + CL_INDEX_P_LO, size, bsObj, elt) 
             
-        return data            
+        return cl_data            
     
-    def _cl_scraping(self, url, size):
+    @staticmethod
+    def _cl_scraping(url, size):
         
-        req = self._prepare_request(url)
+        req = KScraping.prepare_request(url)
     
-        bsObj = self._check_url(url, req)
+        bsObj = KScraping.check_url(url, req)
         
-        data = self._process_cl_page(bsObj, size)
+        cl_data = KScraping._process_cl_page(bsObj, size)
         
-        print "Read: %dx%d" % (len(data), len(data[0]))
+        print "Read: %dx%d for Cl" % (len(data), len(data[0]))
         
-        return data            
-    
-    # ------------------------------------- Properties.  
-    @property
-    def index(self):
-        return self._index   
-    
-    @property
-    def cl_data_ok(self):
-        return self._stor.k == NUM_ROWS and self._stor.b1 == B1_SIZE and \
-            self._stor.a2 == A2_SIZE     
+        return cl_data                      
 
-    def _get_res_file_name(self, index):
-        
-        return RES_FILE_PREFIX + index + INPUT_FILE_NAME_EXT
-        
-    def _scrap_res(self, max_range, file_dir, url_prefix, data_size): 
-        
-        for i in range(1, max_range + 1):
-            
-            i_str = str(i).zfill(2)
-            
-            file_name = os.path.join(os.getcwd(), file_dir, \
-                                     self._get_res_file_name(i_str))
-            
-            if not os.path.exists(file_name):   
-                print "Retrieving data for file: %s" % file_name  
-                url = url_prefix + i_str   
-                data = self._re_scraping(url)
-                
-                # If data could not be get, exit.
-                if len(data) > data_size * 4:                     
-                    self._save_res_data(file_name, data)
-                else:
-                    print "Exiting as no data has been retrieved for: %s." % \
-                        file_name
-                    break     
-                
-    def _save_res_data(self, out_file_name, data):
-        
-        print "Saving file: %s" % out_file_name
-        
-        try:
-            
-            with open(out_file_name, 'w') as f:
-        
-                for d in data:
-                    if type(d) is int:
-                        f.write("%d\n" % d)
-                    else:
-                        f.write("%s\n" % unicodedata.normalize('NFKD', d).encode('ascii','ignore'))
-        
-        except IOError as ioe:
-             print "Error saving file: '%s'" % out_file_name                 
-    
-    # ------------------------------------- Public functions.    
-    def scrap_res_data(self):
-        
-        self._scrap_res(MAX_B1, RES_B1_DIR, RE_B1_URL, B1_SIZE / 2)
-        
-        self._scrap_res(MAX_A2, RES_A2_DIR, RE_A2_URL, A2_SIZE / 2)           
-         
-    def scrap_cl_data(self):
+    @staticmethod 
+    def scrap_cl_data():
         """Scraping CL data.
         """
         
         if len(self._stor.b1) != B1_SIZE:
-            self._stor.b1 = self._cl_scraping(CL_B1_URL, B1_SIZE)
+            b1 = KScraping._cl_scraping(CL_B1_URL, B1_SIZE)
 
         if len(self._stor.a2) != A2_SIZE:
-            self._stor.a2 = self._cl_scraping(CL_A2_URL, A2_SIZE)
+            a2 = KScraping._cl_scraping(CL_A2_URL, A2_SIZE)
+            
+        return b1, a2
         
     def scrap_all_sources(self):
         """Scraping data from multiple sources.
         """
-        
-        self._k_scraping()
 
         self._lm_scraping()
         
@@ -492,29 +426,7 @@ class KScraping(object):
         
         self._q1_scraping()
         
-        self._cq_scraping()      
-        
-        self.scrap_cl_data()          
+        self._cq_scraping()               
         
         if self.data_ok():
-            save_scraping_data(self._index, self._stor)      
-        
-    def data_ok(self):
-         
-        return len(self._stor.k) == NUM_ROWS and \
-            len(self._stor.lm) == NUM_ROWS and \
-            len(self._stor.ve) == NUM_ROWS and \
-            len(self._stor.qu) == NUM_ROWS and \
-            len(self._stor.q1) == NUM_ROWS and \
-            len(self._stor.cq) == NUM_ROWS and \
-            len(self._stor.cqp) == NUM_ROWS and \
-            len(self._stor.b1) == B1_SIZE and \
-            len(self._stor.a2) == A2_SIZE
-            
-    def __str__(self):
-        
-        return "%s: %d %d %d %d %d %d %d %d %d" % \
-        (type(self).__name__, len(self._stor.k), len(self._stor.lm), \
-            len(self._stor.ve), len(self._stor.qu), len(self._stor.q1), \
-            len(self._stor.cq), len(self._stor.cqp), len(self._stor.b1), \
-            len(self._stor.a2))        
+            save_scraping_data(self._index, self._stor)             
