@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-"""Script to do something.
+"""Calculation of ap.
 """ 
 
 import sys
@@ -106,7 +106,7 @@ def complementary(data):
 
 def write_data(ap_data, comp_ap_data, index):
     
-    out_file_name = AP_FILE_PREFIX + index + AP_FILE_EXT
+    out_file_name = AP_FILE_PREFIX + str(index) + AP_FILE_EXT
     
     print "Saving results in: %s" % out_file_name    
                 

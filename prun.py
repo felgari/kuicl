@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 # Copyright (c) 2016 Felipe Gallego. All rights reserved.
@@ -246,7 +245,7 @@ def calculate_un(data_to_predict, hist_data, pro_data, index):
     else:
         print "ERROR: No data to calculate UN"
 
-def do_prun(index, stor):
+def do_prun(index, k, pro):
     
     hist_data = read_hist_data(AP_HIST_FILE)
     
@@ -260,12 +259,4 @@ def do_prun(index, stor):
     final_pred = generate_pred(data_to_pred, data_for_pred, out_file_name)       
     generate_ap(index + AP_FILE_PRE_NAME_SUFFIX, data_to_pred, final_pred)     
 
-    calculate_un(stor.k, hist_data, stor.pro, index)
-
-if __name__ == "__main__":
-    
-    if len(sys.argv) == NUM_ARGS:
-        pro_data = read_pro_file(sys.argv[1])
-        sys.exit(do_prun(sys.argv[1], pro_data))
-    else:
-        print "An index must be provided to read input file."  
+    calculate_un(k, hist_data, pro, index)

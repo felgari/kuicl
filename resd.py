@@ -27,7 +27,7 @@ NUM_ARGS = 2
 
 from ctes import *
 from kfiles import *
-from kscraping import *
+from kscrap import *
     
 class Res(object):
     
@@ -244,40 +244,67 @@ class Res(object):
 
     __repr__ = __str__
     
-class Resum(object):
+class ResData(object):
     
     def __init__(self):
-        
         self._all_res = []
         
     @property
     def all_res(self):
         return self._all_res
-        
-    def get_names(self):
-        
-        names = set()
-        
-        for ar in self._all_res:
-            names.add(ar.lo)
-            names.add(ar.vi)
-            
-        return sorted(list(names)) 
     
-    def get_res(self, name, is_lo):
+    @staticmethod
+    def _save_res_data(out_file_name, data):
         
-        res = []
+        print "Saving file: %s" % out_file_name
         
-        for ar in self._all_res:
-            if is_lo:
-                if ar.lo == name:
-                    res.append(ar)
-            else:
-                if ar.vi == name:
-                    res.append(ar)            
-        return res                
+        try:
+            
+            with open(out_file_name, 'w') as f:
+        
+                for d in data:
+                    if type(d) is int:
+                        f.write("%d\n" % d)
+                    else:
+                        f.write("%s\n" % 
+                                un.normalize('NFKD', d).encode('ascii','ignore'))
+        
+        except IOError as ioe:
+             print "Error saving file: '%s'" % out_file_name  
+        
+    @staticmethod
+    def _scrap_res(max_range, file_dir, url_prefix, data_size): 
+        
+        for i in range(1, max_range + 1):
+            
+            i_str = str(i).zfill(2)
+            
+            file_name = os.path.join(os.getcwd(),
+                                     file_dir,
+                                     RES_FILE_PREFIX + i_str + INPUT_FILE_NAME_EXT)
+            
+            if not os.path.exists(file_name):   
+                print "Retrieving data for file: %s" % file_name  
+                url = url_prefix + i_str   
+                data = KScrap.res_scraping(url)
+                
+                # If data could not be get, exit.
+                if len(data) > data_size * 4:                     
+                    ResData._save_res_data(file_name, data)
+                else:
+                    print "Exiting as no data has been retrieved for: %s." % \
+                        file_name
+                    break                    
+      
+    @staticmethod 
+    def _scrap_res_data():
+        
+        ResData._scrap_res(MAX_B1, RES_B1_DIR, RE_B1_URL, B1_SIZE / 2)
+        
+        ResData._scrap_res(MAX_A2, RES_A2_DIR, RE_A2_URL, A2_SIZE / 2)               
 
-    def _process_lines(self, lines, file_type, j):
+    @staticmethod
+    def _process_lines(lines, file_type, j):
         
         res_list = []    
         current_res = Res(file_type, j)
@@ -304,18 +331,20 @@ class Resum(object):
             
         return res_list
     
-    def _extract_j(self, file_name):
+    @staticmethod
+    def _extract_j(file_name):
         
         pos_start = file_name.find(RES_FILE_PREFIX) + len(RES_FILE_PREFIX)
         pos_end = file_name.find('.')
         
         return int(file_name[pos_start:pos_end])
             
-    def _process_file(self, file_name, file_type):
+    @staticmethod
+    def _process_file(file_name, file_type):
         
         lines_pro = []
         
-        j = self._extract_j(file_name)
+        j = ResData._extract_j(file_name)
         
         with open(file_name, 'r') as f:
             for line in f:
@@ -331,7 +360,30 @@ class Resum(object):
                     lines_pro.append(line_wo_nl)  
                     
         # With all the lines read, process them.
-        return self._process_lines(lines_pro, file_type, j)        
+        return ResData._process_lines(lines_pro, file_type, j)   
+    
+    def get_names(self):
+        
+        names = set()
+        
+        for ar in self._all_res:
+            names.add(ar.lo)
+            names.add(ar.vi)
+            
+        return sorted(list(names)) 
+    
+    def get_res(self, name, is_lo):
+        
+        res = []
+        
+        for ar in self._all_res:
+            if is_lo:
+                if ar.lo == name:
+                    res.append(ar)
+            else:
+                if ar.vi == name:
+                    res.append(ar)            
+        return res       
     
     def process_res(self):
         
@@ -341,7 +393,7 @@ class Resum(object):
             
             for res in res_files:
                 
-                res_list = self._process_file(res, t)
+                res_list = ResData._process_file(res, t)
                 
                 self._all_res.extend(res_list)
                 
@@ -394,7 +446,7 @@ def generate_res(res):
     save_file(B1_RES_FILE, b1_res)
     save_file(A2_RES_FILE, a2_res)
 
-def process_k_data(index, res):
+def process_k_data(index):
     
     k_data = read_k_file(index)    
     
@@ -402,14 +454,14 @@ def process_k_data(index, res):
         lo_name = k[K_NAME_1_COL]
         vi_name = k[K_NAME_2_COL]
         
-        lo_res = res.get_res(lo_name, True)
+        lo_res = ResData.get_res(lo_name, True)
         lo_n_for = len([r for r in lo_res if r.lo_is_forward()]) * 1.0
         lo_n_for_and_w = len([r for r in lo_res if r.lo_is_forward_and_w()])
         lo_n_for_and_t = len([r for r in lo_res if r.lo_is_forward_and_t()])
         lo_n_for_and_l = len([r for r in lo_res if r.lo_is_forward_and_l()])                        
         lo_n_rec = len([r for r in lo_res if r.lo_recover()])            
                 
-        vi_res = res.get_res(vi_name, False)
+        vi_res = ResData.get_res(vi_name, False)
         vi_n_for = len([r for r in vi_res if r.vi_is_forward()]) * 1.0
         vi_n_for_and_w = len([r for r in vi_res if r.vi_is_forward_and_w()])
         vi_n_for_and_t = len([r for r in vi_res if r.vi_is_forward_and_t()])
@@ -435,17 +487,17 @@ def process_k_data(index, res):
         
 def retrieve_res():   
     
-    scr = KScraping(0, None)    
-    scr.scrap_res_data()      
+    ResData._scrap_res_data()     
     
-    res = Resum()
+    res = ResData() 
+    
     res.process_res()        
     
     generate_res(res.all_res)  
 
 def analyze_res(index):
     
-    res = Resum()
+    res = ResData() 
     
     res.process_res()
     

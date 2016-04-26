@@ -16,123 +16,104 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-"""Calculations with local data and data scrapped from web pages.
+"""Main module, calculations made with local data and data scrapped from 
+web pages.
 """
 
 import sys
 
 from ctes import *
 from kparser import *
-from storage import *
-from kscraping import *
-from compdata import *
-from propre import *
-from ap import *
-from kfiles import *
-from resum import *
+from kdat import KDat
+from clda import ClDat
+from pro import Pro
+from pre import Pre
+from pdat import PDat
+from resd import retrieve_res
+from ap import calculate_ap
 from prun import do_prun
+from extd import ExtD
 
-def generate_local_data(index, scr, stor):
- 
-    scr.scrap_cl_data()
+def load_source_data(index):
     
-    prp = ProPre(index, stor)
+    success = True
     
-    prp.generate_pro_data()
+    k = KDat(index)
     
-    prp.generate_pre_data()
-
-def calc_with_all_sources(index, scr, stor):
-    
-    # If an index has been provided try to read data from local files.
-    if int(index) > DEFAULT_INDEX:       
-        read_data_from_file(index, stor)    
-    
-    if not stor.ext_data_ok:
-        scr.scrap_all_sources()
+    if k.loaded:
+        print "K data loaded successfully for index %s" % k.index
+        cl = ClDat(k.index)
         
-    if stor.ext_data_ok:
-        
-        # Generate own data.
-        generate_local_data(index, scr, stor)
-        
-        # Compose the data.
-        if stor.pro_pre_exists:
-            
-            compdat = ComposeData(index, stor)
-            
-            compdat.compose_all_data()
-            
-            final_data = compdat.get_final_data()
-                
-            ap_data = []
-            
-            for j, fd in enumerate(final_data):
-                row = fd
-                print row
-                ap_data.append([row[AP_LI_COL]] + 
-                               [row[AP_FIRST_P_COL + k] \
-                                    for k in range(NAME_DATA_LEN) ])
-            
-            calculate_ap(ap_data, scr.index)
+        if cl.loaded:
+            print "Cl data loaded successfully."
         else:
-            print "ERROR: No data to compose."
+            print "ERROR: Cl data not loaded."
+            success = False
     else:
-        print "ERROR: Not enough data."
-
-def calc_final_data(stor):
-
-    final_data = []
-    
-    for i, kd in enumerate(stor.k):
-        type_k = kd[K_TYPE_COL]
-            
-        p_final = ProPre.calc_final_p(stor.pro[i], stor.pre[i], type_k)
-            
-        final_data.append([type_k] + [ int(round(p)) for p in p_final ])
-    
-    return final_data
-
-def calc_with_own_sources(index, scr, stor):
-    
-    if int(index) > DEFAULT_INDEX:
-                        
-        stor.load_local_data() 
+        print "ERROR: k data not loaded."
+        success = False
         
-        if ( not stor.pro_exists ) or ( not stor.pre_exists ): 
-                       
-            generate_local_data(index, scr, stor)            
-        
-        final_data = calc_final_data(stor)
-        
-        calculate_ap(final_data, scr.index)
+    return success, k, cl
+
+def generate_p(k, cl):
+    
+    success = True
+ 
+    pro = Pro(k.index, k.k, cl.b1, cl.a2)
+    
+    pre = Pre(k.index, k.k, cl.b1, cl.a2)
+    
+    p = None
+    
+    if pro.generated:
+        if pre.generated:
+            p = PDat(k.index, k.k, pro.pro, pre.pre, cl.b1, cl.a2)
+        else:
+            print "ERROR: pre not generated."
     else:
-        print "An index must be provided."
+        print "ERROR: pro not generated."
+        
+    return success, pro, pre, p
+
+def generate_ap(k, p_data, index):
+    
+    ap_data = []
+    
+    for i, fd in enumerate(p_data):
+        ap_data.append([k[i][TYPE_COL]] + fd)
+    
+    calculate_ap(ap_data, index)
 
 def main(progargs):
     """Main function.
     """    
     
-    stor = Storage()
-    
-    if progargs.index_provided:
-        print "Let's go with index %s ..." % progargs.index
-        
-        scr = KScraping(progargs.index, stor)
-        
-        if progargs.use_all_sources:
-            print "Using all sources ..."
-            calc_with_all_sources(progargs.index, scr, stor)    
-        else:
-            print "Using only local sources ..."
-            calc_with_own_sources(progargs.index, scr, stor)
-                
-        print "Calculating prun ..."     
-        do_prun(progargs.index, stor)
-    else:
-        print "No index provided. Only retrieving res ..."
-    
+    if progargs.retrieve_res:
+        print "Retrieving res ..."
         retrieve_res()
+    
+    if progargs.index != DEFAULT_INDEX:
+        print "Let's go with index %s ..." % progargs.index
+    else:
+        print "Let's go without index ..."
+        
+    success, k, cl = load_source_data(progargs.index)
+        
+    if success:
+        success, pro, pre, p = generate_p(k, cl)    
+                    
+        if success:
+            generate_ap(k.k, p.p, k.index)
+            
+            print "Calculating prun ..."     
+            do_prun(k.index, k.k, pro.pro)
+            
+            print "Loading external data ..."
+            extd = ExtD(k.index)
+            
+            extd.load_data()
+    else:
+        print "Source data couldn't be loaded, nothing calculated."
         
     print "Program finished."
     
