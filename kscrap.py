@@ -31,23 +31,9 @@ class KScrap(object):
     """Scraping on some web pages.
     """
     
-    # ------------------------------------- Common functions.
     @staticmethod
-    def prepare_request(url):
-        """Prepare a http request to the url received.
-        """
-        
-        session = requests.Session()
-    
-        return session.get(url, headers=REQUEST_HEADERS)    
-    
-    @staticmethod
-    def check_url(url, req):
+    def retrieve_page(url):
         """Check connection and retrieving from the url received.
-        
-        Args:
-            url: URL to use.
-            req: Request to use.
             
         """
         
@@ -63,6 +49,10 @@ class KScrap(object):
             print(ue)
         else:
             try:
+                session = requests.Session()
+    
+                req = session.get(url, headers=REQUEST_HEADERS)  
+                
                 bsObj = BeautifulSoup(req.text, "lxml")
             except AttributeError as ae:
                 print(ae)
@@ -125,9 +115,7 @@ class KScrap(object):
         k_data = []
         index = ''
     
-        req = KScrap.prepare_request(K_URL)
-    
-        bsObj = KScrap.check_url(K_URL, req)
+        bsObj = KScrap.retrieve_page(K_URL)
         
         try:
             k_data, index = KScrap._process_k_page(bsObj)
@@ -180,10 +168,8 @@ class KScrap(object):
     
     @staticmethod
     def res_scraping(url):
-        
-        req = KScrap.prepare_request(url)
     
-        bsObj = KScrap.check_url(url, req)
+        bsObj = KScrap.retrieve_page(url)
         
         return KScrap._process_re_page(bsObj)    
     
@@ -214,10 +200,8 @@ class KScrap(object):
     
     @staticmethod
     def lm_scraping(lm):
-        
-        req = KScrap.prepare_request(LM_URL)
     
-        bsObj = KScrap.check_url(LM_URL, req)
+        bsObj = KScrap.retrieve_page(LM_URL)
         
         try:
             KScrap._process_lm_page(bsObj, lm)
@@ -243,10 +227,8 @@ class KScrap(object):
     
     @staticmethod
     def ve_scraping(ve):
-        
-        req = KScrap.prepare_request(VE_URL)
     
-        bsObj = KScrap.check_url(VE_URL, req)
+        bsObj = KScrap.retrieve_page(VE_URL)
         
         try:
             KScrap._process_ve_page(bsObj, ve)
@@ -283,9 +265,7 @@ class KScrap(object):
     def qu_scraping(qu):
         
         if sum(qu[0]) == 0:
-            req = KScrap.prepare_request(QU_URL)
-        
-            bsObj = KScrap.check_url(QU_URL, req)
+            bsObj = KScrap.retrieve_page(QU_URL)
             
             try:
                 KScrap._process_qu_page(bsObj, qu)
@@ -319,10 +299,8 @@ class KScrap(object):
         if sum(q1[0]) == 0:
             # The ULR depends on the index received.  
             url = Q1_URL + index
-            
-            req = KScrap.prepare_request(url)
         
-            bsObj = KScrap.check_url(url, req)
+            bsObj = KScrap.retrieve_page(url)
             
             try:
                 KScrap._process_q1_page(bsObj, q1)    
@@ -366,11 +344,7 @@ class KScrap(object):
     def cq_scraping(cq, cqp):
         
         if sum(cq[0]) == 0:
-            url = CQ_URL
-            
-            req = KScrap.prepare_request(url)
-        
-            bsObj = KScrap.check_url(url, req)        
+            bsObj = KScrap.retrieve_page(CQ_URL)        
             
             try:
                 KScrap._process_cq_page(bsObj, cq, cqp)     
@@ -415,10 +389,8 @@ class KScrap(object):
     
     @staticmethod
     def _cl_scraping(url, size):
-        
-        req = KScrap.prepare_request(url)
     
-        bsObj = KScrap.check_url(url, req)
+        bsObj = KScrap.retrieve_page(url)
         
         cl_data = KScrap._process_cl_page(bsObj, size)
         
