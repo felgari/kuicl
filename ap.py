@@ -61,8 +61,8 @@ def calc_ap_base(data):
     
     base = []
     
-    for d in data:        
-        values = d[AP_FIRST_P_COL:]
+    for d in data:       
+        values = [ int(x) for x in d[AP_FIRST_P_COL:]]
         
         maxi = max(values)
         index_maxi = values.index(maxi)
@@ -155,9 +155,7 @@ def main(index):
                 
     ap_data, comp_ap_data = calculate_ap(data, index)
     
-    calc_stats(data, ap_data)
-    
-    calc_stats(data, comp_ap_data)    
+    calc_stats(data, ap_data)   
         
     print "Program finished."
     
