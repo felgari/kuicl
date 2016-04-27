@@ -24,7 +24,7 @@ from putil import combine_lo_vi
 
 class PDat(object):
     
-    def __init__(self, index, k, pro, pre, b1, a2):
+    def __init__(self, index, k, pro, pre, b1, a2, force_calc):
         """Constructor.                        
         """
         
@@ -36,7 +36,7 @@ class PDat(object):
         self._b1 = b1
         self._a2 = a2
         
-        self._calculate()
+        self._calculate(force_calc)
         
     @staticmethod
     def _get_data_from_cl(cl_data, name):
@@ -83,13 +83,14 @@ class PDat(object):
             
         return p_num 
         
-    def _calculate(self):
+    def _calculate(self, force_calc):
         
         p_file_name = P_FILE_NAME_PREFIX + self._index + INPUT_FILE_NAME_EXT
         
-        self._p = read_input_file(p_file_name)
+        if not force_calc:
+            self._p = read_input_file(p_file_name)
         
-        if not len(self._p):
+        if not len(self._p) or force_calc:
         
             for i in range(NUM_ROWS):  
                 

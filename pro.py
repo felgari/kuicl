@@ -25,7 +25,7 @@ from putil import combine_lo_vi, get_cl_data_for_name
 
 class Pro(object):
     
-    def __init__(self, index, k, b1, a2):
+    def __init__(self, index, k, b1, a2, force_calc):
         """Constructor.                        
         """    
         
@@ -35,7 +35,7 @@ class Pro(object):
         self._b1 = b1
         self._a2 = a2
         
-        self._generate()
+        self._generate(force_calc)
     
     @staticmethod
     def _calculate_pro_data(data):
@@ -67,11 +67,12 @@ class Pro(object):
         
         return data_for_calc, pos
     
-    def _generate(self):
+    def _generate(self, force_calc):
         
         pro_file_name = PRO_FILE_NAME_PREFIX + self._index + INPUT_FILE_NAME_EXT
     
-        self._pro = read_input_file(pro_file_name)
+        if not force_calc:
+            self._pro = read_input_file(pro_file_name)
         
         if not len(self._pro):
         

@@ -55,19 +55,19 @@ def load_source_data(index):
         
     return success, k, cl
 
-def generate_p(k, cl):
+def generate_p(k, cl, force_calc):
     
     success = True
  
-    pro = Pro(k.index, k.k, cl.b1, cl.a2)
+    pro = Pro(k.index, k.k, cl.b1, cl.a2, force_calc)
     
-    pre = Pre(k.index, k.k, cl.b1, cl.a2)
+    pre = Pre(k.index, k.k, cl.b1, cl.a2, force_calc)
     
     p = None
     
     if pro.generated:
         if pre.generated:
-            p = PDat(k.index, k.k, pro.pro, pre.pre, cl.b1, cl.a2)
+            p = PDat(k.index, k.k, pro.pro, pre.pre, cl.b1, cl.a2, force_calc)
         else:
             print "ERROR: pre not generated."
     else:
@@ -100,7 +100,7 @@ def main(progargs):
     success, k, cl = load_source_data(progargs.index)
         
     if success:
-        success, pro, pre, p = generate_p(k, cl)    
+        success, pro, pre, p = generate_p(k, cl, progargs.force_calc)    
                     
         if success:
             generate_ap(k.k, p.p, k.index)

@@ -28,7 +28,7 @@ from putil import combine_lo_vi, get_cl_data_for_name
 
 class Pre(object):
     
-    def __init__(self, index, k, b1, a2):
+    def __init__(self, index, k, b1, a2, force_calc):
         """Constructor.                        
         """    
         
@@ -38,7 +38,7 @@ class Pre(object):
         self._b1 = b1
         self._a2 = a2
         
-        self._generate()
+        self._generate(force_calc)
     
     def _get_data_for_pre(self, name, cl_data, res_data, is_lo):
         
@@ -127,11 +127,12 @@ class Pre(object):
         
         return [ int(100 * x) for x in sort_pre_val]
     
-    def _generate(self):  
+    def _generate(self, force_calc):  
         
         pre_file_name = PRE_FILE_NAME_PREFIX + self._index + INPUT_FILE_NAME_EXT
         
-        self._pre = read_input_file(pre_file_name)
+        if not force_calc:
+            self._pre = read_input_file(pre_file_name)
         
         if not len(self._pre):
         

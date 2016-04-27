@@ -58,7 +58,10 @@ class ProgramArguments(object):
                                    choices=xrange(1, 100))              
         
         self.__parser.add_argument("-r", dest="r", action="store_true", 
-                                   help="Retrieve res.")                    
+                                   help="Retrieve res.")   
+        
+        self.__parser.add_argument("-f", dest="f", action="store_true", 
+                                   help="Force new calculations.")                   
         
         self.__args = self.__parser.parse_args()
         
@@ -72,7 +75,11 @@ class ProgramArguments(object):
     
     @property
     def retrieve_res(self):
-        return self.__args.r                 
+        return self.__args.r    
+    
+    @property
+    def force_calc(self):
+        return self.__args.f              
  
     def print_usage(self):
         """Print arguments options.
