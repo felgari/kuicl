@@ -212,7 +212,7 @@ class KScrap(object):
         
     # ------------------------------------- VE scraping.  
     @staticmethod      
-    def _process_ve_page(self, bsObj):
+    def _process_ve_page(bsObj, ve):
 
         i = 0
         for ob in bsObj.findAll(VE_COBJ_1, VE_DICT_1):     
@@ -234,8 +234,8 @@ class KScrap(object):
             KScrap._process_ve_page(bsObj, ve)
         
             print "Read: %dx%d" % (len(ve), len(ve[0]))
-        except AttributeError:
-            print "ERROR retrieving ve"
+        except AttributeError as ae:
+            print "ERROR retrieving ve: %s" % ae
 
     # ------------------------------------- QU scraping.
     @staticmethod
