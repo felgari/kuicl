@@ -37,7 +37,7 @@ def get_matchings(name, data, is_first):
             data_name = d[R_NAME_2_COL]
             
         if name == data_name:
-            mat.append([d[i] for i in R_COLS])
+            mat.append(d[FIRST_R_COL:])
             
     return mat
 
@@ -80,17 +80,13 @@ def process_k(k_data, b1_data, a2_data, index):
     except IOError as ioe:
          print "Error saving file: '%s'" % out_file_name               
 
-def do_report(index):
+def do_report(index, k):
     
     b1_data = read_res_file(B1_RES_FILE)    
     
     a2_data = read_res_file(A2_RES_FILE)
     
-    index_file_name = report_file_name(index)
-    
-    k_data = read_input_file(index_file_name)    
-    
-    process_k(k_data, b1_data, a2_data, index)
+    process_k(k, b1_data, a2_data, index)
     
 def report_generated(index):
     

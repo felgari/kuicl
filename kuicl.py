@@ -117,7 +117,7 @@ def main(progargs):
             extd.load_data()
             
         if progargs.force_calc or not report_generated(k.index):
-            do_report(k.index)
+            do_report(k.index, k.k)
     else:
         print "Source data couldn't be loaded, nothing calculated."
         
