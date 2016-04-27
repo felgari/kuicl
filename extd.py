@@ -20,7 +20,7 @@
 
 import numpy as np
 
-from kfiles import extract_list_text
+from kfiles import extract_list_text, save_data_to_csv
 from kscrap import KScrap
 from resd import *
 
@@ -135,6 +135,8 @@ class ExtD(object):
     def _calc_mean(self):
         mean_sources = []
         
+        self._mean = []
+        
         if sum(self._lm[0]):
             mean_sources.append(self._lm)
         else:
@@ -165,9 +167,9 @@ class ExtD(object):
                 new_row = []
                 for j in range(NUM_COLS):
                     values = [s[i][j] for s in mean_sources]
-                    new_row.append(np.mean(values))
+                    new_row.append(int(round(np.mean(values))))
                 
-                self._mean.append(new_row)
+                self._mean.append(new_row) 
     
     def _read_extd(self):
         
@@ -242,7 +244,13 @@ class ExtD(object):
             
         except IOError as ioe:
              print "Error saving file: '%s'" % out_file_name  
+
+    def _save_mean(self):
         
+        output_file = MEAN_FILE_NAME_PREFIX + self._index + OUTPUT_FILE_NAME_EXT
+        
+        save_data_to_csv(output_file, self._mean)
+
     def load_data(self):
         
         if not self._read_extd():    
@@ -257,3 +265,5 @@ class ExtD(object):
                 self._save_extd()   
                 
         self._calc_mean()
+        
+        self._save_mean()
