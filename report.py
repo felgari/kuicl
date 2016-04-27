@@ -20,32 +20,11 @@
 """
 
 import sys
+import os
 import csv
 
 from ctes import *
-
-def read_file(file_name):
-    
-    data = []
-    
-    try:
-        with open(file_name, "rb") as fr:
-            
-            reader = csv.reader(fr, delimiter=',', quotechar='"')        
-            
-            for row in reader:   
-                 
-                data.append(row)
-                
-        print "Read %d from %s" % (len(data), file_name)
-                
-    except csv.Error:
-        print "Error reading data from CSV file: '%s'" % file_name 
-                
-    except IOError:
-        print "Error reading CSV file: '%s'" % file_name     
-    
-    return data
+from kfiles import read_input_file, read_res_file
 
 def get_matchings(name, data, is_first):
     
@@ -62,9 +41,13 @@ def get_matchings(name, data, is_first):
             
     return mat
 
+def report_file_name(index):    
+    
+    return REP_OUT_FILE_PREFIX + index + REP_OUT_FILE_EXT 
+
 def process_k(k_data, b1_data, a2_data, index):
     
-    out_file_name = REP_OUT_FILE_PREFIX + index + REP_OUT_FILE_EXT
+    out_file_name = report_file_name(index)
     
     print "Saving to file: %s" % out_file_name
     
@@ -95,23 +78,27 @@ def process_k(k_data, b1_data, a2_data, index):
                     f.write("%s\n" % m)
                     
     except IOError as ioe:
-         print "Error saving file: '%s'" % out_file_name                    
+         print "Error saving file: '%s'" % out_file_name               
 
-def main(index):
+def do_report(index):
     
-    b1_data = read_file(B1_RES_FILE)    
+    b1_data = read_res_file(B1_RES_FILE)    
     
-    a2_data = read_file(A2_RES_FILE)
+    a2_data = read_res_file(A2_RES_FILE)
     
-    index_file_name = K_FILE_NAME_PREFIX + index + INPUT_FILE_NAME_EXT
+    index_file_name = report_file_name(index)
     
-    k_data = read_file(index_file_name)    
+    k_data = read_input_file(index_file_name)    
     
     process_k(k_data, b1_data, a2_data, index)
+    
+def report_generated(index):
+    
+    return os.path.exists(report_file_name(index))
 
 if __name__ == "__main__":
     
     if len(sys.argv) == NUM_ARGS:
-        sys.exit(main(sys.argv[1]))
+        sys.exit(do_report(sys.argv[1]))
     else:
         print "The index is needed as argument."

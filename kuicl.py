@@ -33,6 +33,7 @@ from resd import retrieve_res
 from ap import calculate_ap
 from prun import do_prun
 from extd import ExtD
+from report import report_generated, do_report 
 
 def load_source_data(index):
     
@@ -70,8 +71,10 @@ def generate_p(k, cl, force_calc):
             p = PDat(k.index, k.k, pro.pro, pre.pre, cl.b1, cl.a2, force_calc)
         else:
             print "ERROR: pre not generated."
+            success = False
     else:
         print "ERROR: pro not generated."
+        success = False
         
     return success, pro, pre, p
 
@@ -112,6 +115,9 @@ def main(progargs):
             extd = ExtD(k.index)
             
             extd.load_data()
+            
+        if progargs.force_calc or not report_generated(k.index):
+            do_report(k.index)
     else:
         print "Source data couldn't be loaded, nothing calculated."
         
