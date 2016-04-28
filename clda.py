@@ -18,20 +18,22 @@
 """Class to get and store cl data.
 """
 
+import glob
+
 from ctes import *
 from kscrap import KScrap
 from kfiles import extract_list_text
 
 class ClDat(object):
     
-    def __init__(self, index):
+    def __init__(self, index = DEFAULT_INDEX):
         
         self._index = index
         self._b1 = []
         self._a2 = []
         
         # Try read data from a local file.
-        self._read_cldata(index)
+        self._read_cldata()
             
         # If not read from local, retrieve from external source.
         if not self.loaded:
@@ -44,37 +46,57 @@ class ClDat(object):
                 # received.
                 self._index = index
                 
-    def _read_cldata(self, index):
+                
+    def _get_file_to_read(self):
+        
+        file_name = ''
+        
+        if self._index != DEFAULT_INDEX:
+            file_name = PREFIX_CL_FILE_NAME + self._index + SCRAPPED_DATA_FILE_EXT
+        else:
+            cl_files = glob.glob(os.path.join(d, "%s*" % PREFIX_CL_FILE_NAME))
+            
+            if len(cl_files):
+            
+                cl_files.sort()
+            
+                file_name = cl_files[-1]         
+            
+        return file_name
+                
+    def _read_cldata(self):
         
         lines = []   
         
-        # Reading from local file the rest of data.
-        file_name = PREFIX_CL_FILE_NAME + index + SCRAPPED_DATA_FILE_EXT  
+        file_name = self._get_file_to_read()
         
-        print "Reading data from file: %s" % file_name
-        
-        try:
-            with open(file_name, "r") as f:
-                for l in f:
-                    
-                    # Process text line.        
-                    l_txt = l[:-1].strip()
-                    
-                    if len(l_txt):                  
-                        if l_txt.find(B1_TEXT) >= 0:
-                            self._b1 = extract_list_text(l_txt, NUM_COLS_CL)
-                            print "Read %dx%d from file for B1" % \
-                                (len(self._b1), len(self._b1[0]))
-                            
-                        elif l_txt.find(A2_TEXT) >= 0:
-                            self._a2 = extract_list_text(l_txt, NUM_COLS_CL)
-                            print "Read %dx%d from file for A2" % \
-                                (len(self._a2), len(self._a2[0]))
+        if len(file_name):
+            print "Reading data from file: %s" % file_name
+            
+            try:
+                with open(file_name, "r") as f:
+                    for l in f:
+                        
+                        # Process text line.        
+                        l_txt = l[:-1].strip()
+                        
+                        if len(l_txt):                  
+                            if l_txt.find(B1_TEXT) >= 0:
+                                self._b1 = extract_list_text(l_txt, NUM_COLS_CL)
+                                print "Read %dx%d from file for B1" % \
+                                    (len(self._b1), len(self._b1[0]))
                                 
-        except IOError as ioe:
-            print "ERROR: Reading file '%s'" % file_name  
-            self._b1 = []
-            self._a2 = []
+                            elif l_txt.find(A2_TEXT) >= 0:
+                                self._a2 = extract_list_text(l_txt, NUM_COLS_CL)
+                                print "Read %dx%d from file for A2" % \
+                                    (len(self._a2), len(self._a2[0]))
+                                    
+            except IOError as ioe:
+                print "ERROR: Reading file '%s'" % file_name  
+                self._b1 = []
+                self._a2 = []
+        else:
+            print "No file found to read cl."
             
     def _save_cldata(self):
         
