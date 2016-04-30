@@ -57,9 +57,9 @@ def calc_pre_data(r, cl_data, res_data):
     
     return combine_lo_vi(lo_pre, vi_pre)
 
-def genhis(res, cl, file_name, p_type):
+def genhist(res, cl, file_name, p_type):
     
-    print "Generating data for: %s" % file_name
+    print "Generating historical data for: %s" % file_name
     
     hist = read_input_file(file_name)
     
@@ -109,12 +109,12 @@ def main():
         cldat = ClDat()
         
         if cldat.loaded:
-            genhis(b1_res, cldat.b1, HIST_FILE_B1, TYPE_1_COL)
-            genhis(a2_res, cldat.a2, HIST_FILE_A2, TYPE_2_COL)
+            genhist(b1_res, cldat.b1, HIST_FILE_B1, TYPE_1_COL)
+            genhist(a2_res, cldat.a2, HIST_FILE_A2, TYPE_2_COL)
         else: 
-            print "ERROR: Simulation not possible, cl not available."
+            print "ERROR: Generation of historical not possible, cl not available."
     else:
-        print "ERROR: Simulation not possible, res not available."
+        print "ERROR: Generation of historical not possible, res not available."
 
 if __name__ == "__main__":
     
