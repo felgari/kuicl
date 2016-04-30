@@ -46,13 +46,13 @@ class Pre(object):
         pre_data = []
         
         if is_lo:
-            col = LO_COL_RES
-            col_other = VI_COL_RES
+            col = R_NAME_1_COL
+            col_other = R_NAME_2_COL
             the_range = LO_D_RANGE
             the_other_range = VI_D_RANGE
         else:
-            col = VI_COL_RES
-            col_other = LO_COL_RES  
+            col = R_NAME_2_COL
+            col_other = R_NAME_1_COL  
             the_range = VI_D_RANGE
             the_other_range = LO_D_RANGE
             

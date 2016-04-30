@@ -68,7 +68,7 @@ def read_res_file(file_name):
             for row in reader:
                 
                 # Ignore header.
-                if row[J_COL_RES].isdigit():
+                if row[R_J_COL].isdigit():
                 
                     red_row = [row[i] for i in RES_ELEMENTS]
                     

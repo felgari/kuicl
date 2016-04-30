@@ -33,20 +33,20 @@ NUM_ARGS = 2
 
 def calc_pro_data(r, cl_data):
     
-    calc_lo_data, _ = Pro.get_data_for_pro(r[LO_COL_RES], LO_P_RANGE, cl_data)
+    calc_lo_data, _ = Pro.get_data_for_pro(r[R_NAME_1_COL], LO_P_RANGE, cl_data)
     
-    calc_vi_data, _ = Pro.get_data_for_pro(r[VI_COL_RES], VI_P_RANGE, cl_data)
+    calc_vi_data, _ = Pro.get_data_for_pro(r[R_NAME_2_COL], VI_P_RANGE, cl_data)
     
     return combine_lo_vi(calc_lo_data, calc_vi_data)
 
 def calc_pre_data(r, cl_data, res_data):
     
-    lo_data, lo_pos, lo_cl = Pre.get_data_for_pre(r[LO_COL_RES], 
+    lo_data, lo_pos, lo_cl = Pre.get_data_for_pre(r[R_NAME_1_COL], 
                                                   cl_data, 
                                                   res_data,
                                                   True)   
     
-    vi_data, vi_pos, vi_cl = Pre.get_data_for_pre(r[VI_COL_RES], 
+    vi_data, vi_pos, vi_cl = Pre.get_data_for_pre(r[R_NAME_2_COL], 
                                                   cl_data, 
                                                   res_data,
                                                   False)
@@ -70,16 +70,16 @@ def genhis(res, cl, file_name, p_type):
     else:
         max_j_read = FIRST_ENTRY_HIST
     
-    j_res_max = max([ int(r[J_COL_RES]) for r in res
-                     if int(r[J_COL_RES]) >= FIRST_ENTRY_HIST])
+    j_res_max = max([ int(r[R_J_COL]) for r in res
+                     if int(r[R_J_COL]) >= FIRST_ENTRY_HIST])
     
     for j in range(max_j_read + 1, j_res_max + 1):
         
         print "Generating j: %d" % j
         
-        res_j = [ r for r in res if int(r[J_COL_RES]) == j ]
+        res_j = [ r for r in res if int(r[R_J_COL]) == j ]
         
-        res_data = [ r for r in res if int(r[J_COL_RES]) < j ]
+        res_data = [ r for r in res if int(r[R_J_COL]) < j ]
         
         for r in res_j:
             pro_data = calc_pro_data(r, cl)
@@ -93,7 +93,7 @@ def genhis(res, cl, file_name, p_type):
             new_row.extend(pro_data)
             new_row.extend(pre_data)
             new_row.extend(p_data)
-            new_row.extend([r[LO_COL_RES], r[VI_COL_RES]])
+            new_row.extend([r[R_NAME_1_COL], r[R_NAME_2_COL]])
             
             hist.append(new_row)
             
