@@ -40,7 +40,8 @@ class Pre(object):
         
         self._generate(force_calc)
     
-    def _get_data_for_pre(self, name, cl_data, res_data, is_lo):
+    @staticmethod
+    def get_data_for_pre(name, cl_data, res_data, is_lo):
         
         pre_data = []
         
@@ -74,7 +75,8 @@ class Pre(object):
                                                
         return pre_data, cl[CL_POS_COL], final_cl
     
-    def _get_val_index(self, values, order, sort_values, name):
+    @staticmethod
+    def _get_val_index(values, order, sort_values, name):
         
         try:
             i = order.index(name)
@@ -82,17 +84,19 @@ class Pre(object):
         except ValueError:
             sort_values.append(0)
 
-    def _sort_pre_values(self, values, order):
+    @staticmethod
+    def _sort_pre_values(values, order):
         
         sort_values = []
         
-        self._get_val_index(values, order, sort_values, FIRST_NAME)
-        self._get_val_index(values, order, sort_values, SECOND_NAME)
-        self._get_val_index(values, order, sort_values, THIRD_NAME)                
+        Pre._get_val_index(values, order, sort_values, FIRST_NAME)
+        Pre._get_val_index(values, order, sort_values, SECOND_NAME)
+        Pre._get_val_index(values, order, sort_values, THIRD_NAME)                
                     
         return sort_values        
     
-    def _get_pre_values(self, data, lo_pos, lo_cl, vi_pos, vi_cl):
+    @staticmethod
+    def get_pre_values(data, lo_pos, lo_cl, vi_pos, vi_cl):
         
         tr_data = []
         classes_data = []
@@ -122,8 +126,8 @@ class Pre(object):
 
         prd = rf.predict_proba(np_prd_data)
 
-        sort_pre_val = self._sort_pre_values(prd[0],
-                                             np.ndarray.tolist(rf.classes_))
+        sort_pre_val = Pre._sort_pre_values(prd[0],
+                                            np.ndarray.tolist(rf.classes_))
         
         return [ int(100 * x) for x in sort_pre_val]
     
@@ -148,19 +152,19 @@ class Pre(object):
                     res_data = a2_res
                     
                 lo_data, lo_pos, lo_cl = \
-                    self._get_data_for_pre(k[NAME_LO_COL], cl_data, res_data, 
-                                           True)     
+                    Pre.get_data_for_pre(k[NAME_LO_COL], cl_data, res_data, 
+                                         True)  
                 
                 vi_data, vi_pos, vi_cl = \
-                    self._get_data_for_pre(k[NAME_VI_COL], cl_data, res_data, 
-                                           False)
+                    Pre.get_data_for_pre(k[NAME_VI_COL], cl_data, res_data,
+                                         False)
                     
                 print "Predicting: %s - %s" % (k[NAME_LO_COL], k[NAME_VI_COL])
                 
-                lo_pre = self._get_pre_values(lo_data, lo_pos, lo_cl, vi_pos, 
+                lo_pre = self.get_pre_values(lo_data, lo_pos, lo_cl, vi_pos, 
                                               vi_cl)             
     
-                vi_pre = self._get_pre_values(vi_data, lo_pos, lo_cl, vi_pos, 
+                vi_pre = self.get_pre_values(vi_data, lo_pos, lo_cl, vi_pos, 
                                               vi_cl)
                 
                 self._pre.append(combine_lo_vi(lo_pre, vi_pre))

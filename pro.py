@@ -48,16 +48,9 @@ class Pro(object):
         return [ 100.0 * float(d) / data_sum for d in data ]
     
     @staticmethod
-    def get_data_for_pro(k, cl_data, is_lo):
-        
-        if is_lo:
-            name_col = NAME_LO_COL
-            p_range = LO_P_RANGE
-        else:
-            name_col = NAME_VI_COL
-            p_range = VI_P_RANGE
+    def get_data_for_pro(name_col, p_range, cl_data):
                     
-        data_from_name = get_cl_data_for_name(k[name_col], cl_data)
+        data_from_name = get_cl_data_for_name(name_col, cl_data)
         
         pos = int(data_from_name[CL_POS_COL])
         
@@ -83,9 +76,13 @@ class Pro(object):
                 else:
                     cl_data = self._a2
                     
-                calc_lo_data, lo_pos = Pro.get_data_for_pro(k, cl_data, True)         
+                calc_lo_data, lo_pos = Pro.get_data_for_pro(k[NAME_LO_COL],
+                                                            LO_P_RANGE,
+                                                            cl_data)         
                 
-                calc_vi_data, vi_pos = Pro.get_data_for_pro(k, cl_data, False) 
+                calc_vi_data, vi_pos = Pro.get_data_for_pro(k[NAME_VI_COL],
+                                                            VI_P_RANGE, 
+                                                            cl_data) 
                 
                 self._pro.append(combine_lo_vi(calc_lo_data, calc_vi_data))
                 

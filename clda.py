@@ -18,6 +18,7 @@
 """Class to get and store cl data.
 """
 
+import os
 import glob
 
 from ctes import *
@@ -54,7 +55,7 @@ class ClDat(object):
         if self._index != DEFAULT_INDEX:
             file_name = PREFIX_CL_FILE_NAME + self._index + SCRAPPED_DATA_FILE_EXT
         else:
-            cl_files = glob.glob(os.path.join(d, "%s*" % PREFIX_CL_FILE_NAME))
+            cl_files = glob.glob("%s*" % PREFIX_CL_FILE_NAME)
             
             if len(cl_files):
             
