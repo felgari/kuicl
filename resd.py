@@ -21,13 +21,14 @@
 
 import sys
 import os
+import csv
 import glob
 
 NUM_ARGS = 2
 
 from ctes import *
-from kfiles import *
-from kscrap import *
+from kdat import KDat
+from kscrap import KScrap
     
 class Res(object):
     
@@ -446,22 +447,22 @@ def generate_res(res):
     save_file(B1_RES_FILE, b1_res)
     save_file(A2_RES_FILE, a2_res)
 
-def process_k_data(index):
+def process_k_data(index, res):
     
-    k_data = read_k_file(index)    
+    k_data = KDat(index) 
     
-    for k in k_data:
+    for k in k_data.k:
         lo_name = k[K_NAME_1_COL]
         vi_name = k[K_NAME_2_COL]
         
-        lo_res = ResData.get_res(lo_name, True)
+        lo_res = res.get_res(lo_name, True)
         lo_n_for = len([r for r in lo_res if r.lo_is_forward()]) * 1.0
         lo_n_for_and_w = len([r for r in lo_res if r.lo_is_forward_and_w()])
         lo_n_for_and_t = len([r for r in lo_res if r.lo_is_forward_and_t()])
         lo_n_for_and_l = len([r for r in lo_res if r.lo_is_forward_and_l()])                        
         lo_n_rec = len([r for r in lo_res if r.lo_recover()])            
                 
-        vi_res = ResData.get_res(vi_name, False)
+        vi_res = res.get_res(vi_name, False)
         vi_n_for = len([r for r in vi_res if r.vi_is_forward()]) * 1.0
         vi_n_for_and_w = len([r for r in vi_res if r.vi_is_forward_and_w()])
         vi_n_for_and_t = len([r for r in vi_res if r.vi_is_forward_and_t()])
