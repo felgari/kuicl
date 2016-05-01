@@ -28,7 +28,7 @@ from putil import combine_lo_vi, get_cl_data_for_name
 
 class Pre(object):
     
-    def __init__(self, index, k, b1, a2, force_calc):
+    def __init__(self, index, k, b1, a2, force_calc = False):
         """Constructor.                        
         """    
         

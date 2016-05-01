@@ -57,7 +57,7 @@ def calc_pre_data(r, cl_data, res_data):
     
     return combine_lo_vi(lo_pre, vi_pre)
 
-def genhist(res, cl, file_name, p_type):
+def gen_hist(res, cl, file_name, p_type):
     
     print "Generating historical data for: %s" % file_name
     
@@ -98,8 +98,40 @@ def genhist(res, cl, file_name, p_type):
             hist.append(new_row)
             
     save_data_to_csv(file_name, hist)
+    
+    return hist
 
-def main():
+def load_local_data(index, cl_b1, cl_a2):
+    
+    kdat = KDat(index)
+    
+    pro = Pro(index, kdat.k, cl_b1, cl_a2)
+    
+    pre = Pre(index, kdat.k, cl_b1, cl_a2)
+    
+    pdat = PDat(index, kdat.k, cl_b1, cl_a2)
+    
+    return kdat.loaded and pro.generated and pre.generated, \
+            kdat.k, pro.pro, pre.pre, pdat.p
+
+def generate_final_hist(index, b1_hist, a2_hist, k, pro_data, pre_data, p_data):
+    
+    hist = b1_hist + a2_hist
+    
+    for i, k_elt in enumerate(k):
+        
+        new_row = [int(index), int(k_elt[TYPE_COL]), '']
+            
+        new_row.extend(pro_data[i])
+        new_row.extend(pre_data[i])
+        new_row.extend(p_data[i])
+        new_row.extend([k_elt[NAME_LO_COL], k_elt[NAME_VI_COL]])
+        
+        hist.append(new_row)
+    
+    save_data_to_csv(AP_HIST_FILE, hist)
+
+def main(index = DEFAULT_INDEX):
     
     b1_res = read_res_file(B1_RES_FILE)
     a2_res = read_res_file(A2_RES_FILE)
@@ -109,8 +141,17 @@ def main():
         cldat = ClDat()
         
         if cldat.loaded:
-            genhist(b1_res, cldat.b1, HIST_FILE_B1, TYPE_1_COL)
-            genhist(a2_res, cldat.a2, HIST_FILE_A2, TYPE_2_COL)
+            b1_hist = gen_hist(b1_res, cldat.b1, HIST_FILE_B1, TYPE_1_COL)
+            a2_hist = gen_hist(a2_res, cldat.a2, HIST_FILE_A2, TYPE_2_COL)
+            
+            if index != DEFAULT_INDEX:
+                
+                success, k, pro, pre, p = load_local_data(index, cl.b1, cl.a2)
+                
+                if success:
+                    generate_final_hist(index, b1_hist, a2_hist, k, pro, pre, p)
+                else:
+                    print "ERROR: Generation of historical not possible, local data not available."
         else: 
             print "ERROR: Generation of historical not possible, cl not available."
     else:
@@ -118,4 +159,5 @@ def main():
 
 if __name__ == "__main__":
     
-    main()
+    if len(sys.argv) > 1:
+        main(sys.argv[1])

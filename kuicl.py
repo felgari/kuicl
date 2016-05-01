@@ -33,7 +33,7 @@ from resd import retrieve_res
 from ap import calculate_ap
 from prun import do_prun
 from extd import ExtD
-from genhis import genhist
+from genhis import gen_hist, generate_final_hist
 from kfiles import read_res_file
 from report import report_generated, do_report 
 
@@ -89,14 +89,16 @@ def generate_ap(k, p_data, index):
     
     calculate_ap(ap_data, index)
     
-def generate_hist(cl):
+def generate_hist(index, cl, k, pro, pre, p):
     
     b1_res = read_res_file(B1_RES_FILE)
     a2_res = read_res_file(A2_RES_FILE)
     
     if len(b1_res) and len(a2_res):
-        genhist(b1_res, cl.b1, HIST_FILE_B1, TYPE_1_COL)
-        genhist(a2_res, cl.a2, HIST_FILE_A2, TYPE_2_COL)
+        b1_hist = gen_hist(b1_res, cl.b1, HIST_FILE_B1, TYPE_1_COL)
+        a2_hist = gen_hist(a2_res, cl.a2, HIST_FILE_A2, TYPE_2_COL)
+        
+        generate_final_hist(index, b1_hist, a2_hist, k, pro, pre, p)
     else:
         print "ERROR: Generation of historical not possible, res not available."
 
@@ -121,7 +123,7 @@ def main(progargs):
         if success:
             generate_ap(k.k, p.p, k.index)
             
-            generate_hist(cl)
+            generate_hist(k.index, cl, k.k, pro.pro, pre.pre, p.p)
             
             print "Calculating prun ..."     
             do_prun(k.index, k.k, pro.pro)

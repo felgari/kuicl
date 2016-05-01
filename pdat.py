@@ -24,7 +24,7 @@ from putil import combine_lo_vi
 
 class PDat(object):
     
-    def __init__(self, index, k, pro, pre, b1, a2, force_calc):
+    def __init__(self, index, k, pro, pre, b1, a2, force_calc = False):
         """Constructor.                        
         """
         
