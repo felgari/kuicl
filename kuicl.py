@@ -23,7 +23,7 @@ web pages.
 import sys
 
 from ctes import *
-from kparser import *
+from kparser import ProgramArgumentsException, ProgramArguments
 from kdat import KDat
 from clda import ClDat
 from pro import Pro

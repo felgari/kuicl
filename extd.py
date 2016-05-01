@@ -20,9 +20,9 @@
 
 import numpy as np
 
+from ctes import *
 from kfiles import extract_list_text, save_data_to_csv
 from kscrap import KScrap
-from resd import *
 
 class ExtD(object):
     

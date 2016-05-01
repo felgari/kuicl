@@ -25,7 +25,6 @@ import unicodedata as un
 import json
 
 from ctes import *
-from kfiles import *
 
 class KScrap(object):
     """Scraping on some web pages.
