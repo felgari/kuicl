@@ -34,7 +34,7 @@ from ap import calculate_ap
 from prun import do_prun
 from extd import ExtD
 from genhis import gen_hist, generate_final_hist
-from kfiles import read_res_file
+from kfiles import read_res_file, save_all
 from report import report_generated, do_report 
 
 def load_source_data(index):
@@ -126,12 +126,14 @@ def main(progargs):
             generate_hist(k.index, cl, k.k, pro.pro, pre.pre, p.p)
             
             print "Calculating prun ..."     
-            do_prun(k.index, k.k, pro.pro)
+            pr, pr_ap, un = do_prun(k.index, k.k, pro.pro)
             
             print "Loading external data ..."
             extd = ExtD(k.index)
             
             extd.load_data()
+            
+            save_all(k.k, extd.mean, p.p, pr, pr_ap, un, k.index)
             
         if progargs.force_calc or not report_generated(k.index):
             do_report(k.index, k.k)

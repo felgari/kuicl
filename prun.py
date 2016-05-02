@@ -165,7 +165,7 @@ def predict_rf(hist_data, data_to_predict, cl_data):
     np_classes_data = np.array(cl_data)
     np_prd_data = np.matrix(data_to_predict)
     
-    rf = RandomForestClassifier(n_estimators=RF_NUM_ESTIMATORS, 
+    rf = RandomForestClassifier(n_estimators=RF_NUM_ESTIMATORS_PRUN, 
         random_state=RF_SEED)
     
     rf.fit(np_hist_data, np_classes_data)
@@ -204,8 +204,8 @@ def generate_pred(data_to_predict, pre_data, index):
     data_rf_1, score_rf_1, data_nn_1, score_nn_1 = predict(data_t1, pre_data_t1)
     data_rf_2, score_rf_2, data_nn_2, score_nn_2 = predict(data_t2, pre_data_t2)    
     
-    pred_out_1 = data_rf_1 if score_rf_1 > score_nn_1 else data_nn_1
-    pred_out_2 = data_rf_2 if score_rf_2 > score_nn_2 else data_nn_2
+    pred_out_1 = data_rf_1 if score_rf_1 + 0.01 > score_nn_1 else data_nn_1
+    pred_out_2 = data_rf_2 if score_rf_2 + 0.01  > score_nn_2 else data_nn_2
     
     pred_out = pred_out_1 + pred_out_2
         
@@ -220,7 +220,7 @@ def generate_ap(index_name, data_to_predict, final_pred):
     for i, dtp in enumerate(data_to_predict):
         pre_data_for_ap.append([dtp[HIST_PRED_L_COL]] + final_pred[i])
     
-    calculate_ap(pre_data_for_ap, index_name)  
+    return calculate_ap(pre_data_for_ap, index_name)  
     
 def compile_un_data(data_to_predict, src_hist_data, pro_data):
     
@@ -275,16 +275,22 @@ def generate_un(data_to_predict, hist_data, cl_data, to_pred, index):
     np_classes_data = np.array(cl_data)
     np_prd_data = np.matrix(to_pred)
     
-    rf = RandomForestClassifier(n_estimators=RF_NUM_ESTIMATORS, 
+    rf = RandomForestClassifier(n_estimators=RF_NUM_ESTIMATORS_PRUN, 
         random_state=RF_SEED)
     
     rf.fit(np_hist_data, np_classes_data)
     
     prd = rf.predict_proba(np_prd_data)
     
-    save_un(data_to_predict, prd, index)   
+    save_un(data_to_predict, prd, index)  
+    
+    un = [int(100 * x[1]) for x in prd] 
+    
+    return un
 
-def calculate_un(data_to_predict, hist_data, pro_data, index):    
+def calculate_un(data_to_predict, hist_data, pro_data, index):  
+    
+    un = []  
     
     src_hist_data = [x for x in hist_data if len(x[HIST_PRED_R_COL])]
     
@@ -296,13 +302,16 @@ def calculate_un(data_to_predict, hist_data, pro_data, index):
                                     src_hist_data,
                                     pro_data)
         
-                generate_un(data_to_predict, hist_data, cl_data, to_pred, index)
+                un = generate_un(data_to_predict, hist_data, cl_data, to_pred, 
+                                 index)
             else:
                 print "ERROR: No pro data to calculate UN"
         else:
             print "ERROR: No historic data to calculate UN"
     else:
         print "ERROR: No data to calculate UN"
+        
+    return un
 
 def do_prun(index, k, pro):
     
@@ -316,6 +325,9 @@ def do_prun(index, k, pro):
     
     final_pred = generate_pred(data_to_pred, data_for_pred, index) 
           
-    generate_ap(index + AP_FILE_PRE_NAME_SUFFIX, data_to_pred, final_pred)     
+    ap_data, comp_ap_data = \
+        generate_ap(index + AP_FILE_PRE_NAME_SUFFIX, data_to_pred, final_pred)     
 
-    calculate_un(k, hist_data, pro, index)
+    un = calculate_un(k, hist_data, pro, index)
+    
+    return final_pred, ap_data, un

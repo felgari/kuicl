@@ -113,12 +113,35 @@ def extract_list_text(txt, num):
 def save_data_to_csv(out_file_name, data):
     
     try:
-        
+
         with open(out_file_name, 'w') as f:        
             for d in data:            
-                f.write("%s\n" % CSV_DELIMITER.join(str(i) for i in d))
+                f.write("%s\n" % CSV_DELIMITER.join(str(e) for e in d))
         
         print "File saved: %s" % out_file_name
            
     except IOError as ioe:
-         print "Error saving file: '%s'" % out_file_name 
+         print "Error saving file: '%s'" % out_file_name
+         
+def save_all(k, extm, p, prun, ap, un, index):
+    
+    out_file_name = OUTPUT_FILE_PREFIX + index + OUTPUT_FILE_NAME_EXT
+    
+    print "Saving all data to: %s" % out_file_name
+    
+    try:
+
+        with open(out_file_name, 'w') as f:  
+                  
+            for i, k_elt in enumerate(k):    
+                
+                row = [k_elt[K_NAME_1_COL], k_elt[K_NAME_2_COL]] + \
+                    extm[i] + p[i] + prun[i] + [ap[i]] + [un[i]]
+                       
+                f.write("%s\n" % CSV_DELIMITER.join(str(e) for e in row))
+        
+        print "File saved: %s" % out_file_name
+           
+    except IOError as ioe:
+         print "Error saving file: '%s'" % out_file_name
+    
