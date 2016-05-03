@@ -29,6 +29,7 @@ NUM_ARGS = 2
 from ctes import *
 from kdat import KDat
 from kscrap import KScrap
+import unicodedata as un
     
 class Res(object):
     
