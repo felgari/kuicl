@@ -22,9 +22,7 @@ import sys
 import csv
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
-from sklearn import datasets, metrics
-import tensorflow as tf
-import tensorflow.contrib.learn as skflow
+from sklearn import metrics
 
 from ctes import *
 from ap import calculate_ap
@@ -115,22 +113,6 @@ def _sort_pre_values(values, order):
                 
     return sort_values  
 
-def prepare_data_for_nn(hist_data, data_to_predict, cl_data):
-    
-    np_hist_data = np.matrix(hist_data).astype(float)
-    
-    np_cl_data_num = np.array([CL_TO_NUM[x] for x in cl_data])
-    
-    np_prd_data = np.matrix(data_to_predict).astype(float)
-    
-    return np_hist_data, np_prd_data, np_cl_data_num
-
-def nn_model(x, y):
-
-    layers = skflow.ops.dnn(x, NN_LEVELS, tf.tanh)
-    
-    return skflow.models.logistic_regression(layers, y)
-
 def link_perc_to_cl(prd, cl):
     
     data_out = []
@@ -142,22 +124,6 @@ def link_perc_to_cl(prd, cl):
         data_out.append([int(100 * x) for x in sort_pre_val])
         
     return data_out
-
-def predict_nn(hist_data, data_to_predict, cl_data):
-    
-    np_hist_data, np_prd_data, np_classes_data = \
-        prepare_data_for_nn(hist_data, data_to_predict, cl_data)
-    
-    nn = skflow.TensorFlowEstimator(model_fn=nn_model, n_classes=3)
-    
-    nn.fit(np_hist_data, np_classes_data, logdir = './log')
-    
-    score = metrics.accuracy_score(np_classes_data, nn.predict(np_hist_data))
-    print("Accuracy NN: %f" % score)
-      
-    prd = nn.predict_proba(np_prd_data) 
-    
-    return link_perc_to_cl(prd, CLASSES_PRE), score
 
 def predict_rf(hist_data, data_to_predict, cl_data):
     
@@ -175,7 +141,7 @@ def predict_rf(hist_data, data_to_predict, cl_data):
     
     prd = rf.predict_proba(np_prd_data)
 
-    return link_perc_to_cl(prd, np.ndarray.tolist(rf.classes_)), score
+    return link_perc_to_cl(prd, np.ndarray.tolist(rf.classes_))
 
 def predict(to_predict, pred_data):
     
@@ -187,11 +153,9 @@ def predict(to_predict, pred_data):
     
     if len(hist_data) and len(data_to_predict):
         
-        data_rf, score_rf = predict_rf(hist_data, data_to_predict, cl_data)
+        data_out = predict_rf(hist_data, data_to_predict, cl_data)
         
-        data_nn, score_nn = predict_nn(hist_data, data_to_predict, cl_data)
-        
-    return data_rf, score_rf, data_nn, score_nn
+    return data_out
         
 def generate_pred(data_to_predict, pre_data, index):  
     
@@ -201,15 +165,12 @@ def generate_pred(data_to_predict, pre_data, index):
     data_t1 = [x for x in data_to_predict if x[HIST_PRED_L_COL] == int(TYPE_1_COL)]
     data_t2 = [x for x in data_to_predict if x[HIST_PRED_L_COL] == int(TYPE_2_COL)]
     
-    data_rf_1, score_rf_1, data_nn_1, score_nn_1 = predict(data_t1, pre_data_t1)
-    data_rf_2, score_rf_2, data_nn_2, score_nn_2 = predict(data_t2, pre_data_t2)    
-    
-    pred_out_1 = data_rf_1 if score_rf_1 + 0.01 > score_nn_1 else data_nn_1
-    pred_out_2 = data_rf_2 if score_rf_2 + 0.01  > score_nn_2 else data_nn_2
+    pred_out_1 = predict(data_t1, pre_data_t1)
+    pred_out_2 = predict(data_t2, pre_data_t2)    
     
     pred_out = pred_out_1 + pred_out_2
         
-    save_res(pred_out, PRED_OUT_FILE_NAME_PREFIX + index + PRED_OUT_FILE_EXT)     
+    save_res(pred_out, PRED_OUT_FILE_NAME_PREFIX + index + PRED_OUT_FILE_EXT)  
     
     return pred_out
 
