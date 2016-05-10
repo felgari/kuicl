@@ -51,9 +51,15 @@ def calc_pre_data(r, cl_data, res_data):
                                                   res_data,
                                                   False)
     
-    lo_pre = Pre.get_pre_values(lo_data, lo_pos, lo_cl, vi_pos, vi_cl)             
+    lo_mdl = Pre.get_mdl(r[R_NAME_1_COL])
+    
+    lo_pre = Pre.get_pre_values(lo_data, lo_pos, lo_cl, vi_pos, vi_cl,
+                                lo_mdl.lo_mdls)  
+    
+    vi_mdl = Pre.get_mdl(r[R_NAME_2_COL])           
 
-    vi_pre = Pre.get_pre_values(vi_data, lo_pos, lo_cl, vi_pos, vi_cl)
+    vi_pre = Pre.get_pre_values(vi_data, lo_pos, lo_cl, vi_pos, vi_cl,
+                                vi_mdl.vi_mdls)
     
     return combine_lo_vi(lo_pre, vi_pre)
 

@@ -24,7 +24,7 @@ from sklearn import cross_validation
 
 from ctes import *
 from clda import ClDat
-from kfiles import read_res_file
+from kfiles import read_res_file, save_data_to_csv
 
 def generate_data(name, res, cl, is_lo):
     
@@ -54,11 +54,7 @@ def generate_data(name, res, cl, is_lo):
 
 def evaluate_models(name, res, cl, is_lo):
     
-    print "- %s as %s:" % (name, "lo" if is_lo else "vi")
-    
     data, target = generate_data(name, res, cl, is_lo)
-    
-    print "Number of cases: %d" % len(data)
     
     best_models = []
     
@@ -70,8 +66,8 @@ def evaluate_models(name, res, cl, is_lo):
         scores = cross_validation.cross_val_score(clf, data, target, \
                                                   cv=CV_NUM_SETS)
         
-        print("Accuracy of %s: %0.2f (+/- %0.2f)" % \
-              (clf_name, scores.mean(), scores.std() * 2))
+        #print("Accuracy of %s: %0.2f (+/- %0.2f)" % \
+              #(clf_name, scores.mean(), scores.std() * 2))
         
         if not len(best_models):
             best_models.append(i)
@@ -89,21 +85,31 @@ def evaluate_models(name, res, cl, is_lo):
             best_mean_score = scores.mean()
             best_std_score = scores.std()
             
-    print "Best models (%0.2f): %s" % \
-        (best_mean_score, [CL_NAMES[i] for i in best_models])
+    #print "Best models (%0.2f): %s" % \
+    #    (best_mean_score, [CL_NAMES[i] for i in best_models])
         
     return [best_mean_score] + best_models
 
 def evaluate_all_models(cl, res):
     
+    mdls = []
+    
     for c in cl:
         name = c[CL_NAME_COL]
         
         lo_res = [ r for r in res if r[R_NAME_1_COL] == name ]
-        evaluate_models(name, lo_res, cl, True)
+        lo_mdls = evaluate_models(name, lo_res, cl, True)
         
         vi_res = [ r for r in res if r[R_NAME_2_COL] == name ]
-        evaluate_models(name, vi_res, cl, False)
+        vi_mdls = evaluate_models(name, vi_res, cl, False)
+        
+        mdl = [name]
+        mdl.extend(lo_mdls)
+        mdl.extend(vi_mdls)
+        
+        mdls.append(mdl)
+        
+    return mdls
 
 def main():
     
@@ -115,8 +121,10 @@ def main():
         a2_res = read_res_file(A2_RES_FILE)
         
         if len(b1_res) and len(a2_res):
-            evaluate_all_models(clda.b1, b1_res)
-            evaluate_all_models(clda.a2, a2_res)
+            mdls_b1 = evaluate_all_models(clda.b1, b1_res)
+            mdls_a2 = evaluate_all_models(clda.a2, a2_res)
+            
+            save_data_to_csv(MODELS_FILENAME, mdls_b1 + mdls_a2)
         else:
             print "Res data couldn't be read."
     else:

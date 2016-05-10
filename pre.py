@@ -22,11 +22,14 @@ import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 
 from ctes import *
+from model import Model, read_mdl_file
 from kscrap import KScrap
 from kfiles import read_input_file, read_res_file, save_data_to_csv
 from putil import combine_lo_vi, get_cl_data_for_name
 
 class Pre(object):
+    
+    _mdls = read_mdl_file()
     
     def __init__(self, index, k, b1, a2, force_calc = False):
         """Constructor.                        
@@ -39,6 +42,15 @@ class Pre(object):
         self._a2 = a2
         
         self._generate(force_calc)
+        
+    @classmethod
+    def get_mdl(cls, name):
+        
+        for m in cls._mdls:
+            if m.name == name:
+                return m
+                
+        return None
     
     @staticmethod
     def get_data_for_pre(name, cl_data, res_data, is_lo):
@@ -71,7 +83,7 @@ class Pre(object):
                 else:
                     pre_data.append([cl_other[CL_POS_COL], final_cl_other, \
                                      cl[CL_POS_COL], final_cl, \
-                                     res_d[RES_ELT_COL]])                                      
+                                     res_d[RES_ELT_COL]])                                
                                                
         return pre_data, cl[CL_POS_COL], final_cl
     
@@ -96,7 +108,7 @@ class Pre(object):
         return sort_values        
     
     @staticmethod
-    def get_pre_values(data, lo_pos, lo_cl, vi_pos, vi_cl):
+    def get_pre_values(data, lo_pos, lo_cl, vi_pos, vi_cl, mdls):
         
         tr_data = []
         classes_data = []
@@ -118,16 +130,19 @@ class Pre(object):
         np_tr_data = np.matrix(tr_data)
         np_classes_data = np.array(classes_data)
         np_prd_data = np.matrix(prd_data)
-            
-        rf = RandomForestClassifier(n_estimators = RF_NUM_ESTIMATORS, 
-                                     random_state = RF_SEED)  
+        
+        if mdls:
+            cl = CLS[mdls[0]]
+        else:
+            cl = RandomForestClassifier(n_estimators = RF_NUM_ESTIMATORS, 
+                                         random_state = RF_SEED)  
 
-        rf.fit(np_tr_data, np_classes_data)      
+        cl.fit(np_tr_data, np_classes_data)      
 
-        prd = rf.predict_proba(np_prd_data)
+        prd = cl.predict_proba(np_prd_data)
 
         sort_pre_val = Pre._sort_pre_values(prd[0],
-                                            np.ndarray.tolist(rf.classes_))
+                                            np.ndarray.tolist(cl.classes_))
         
         return [ int(100 * x) for x in sort_pre_val]
     
@@ -153,19 +168,23 @@ class Pre(object):
                     
                 lo_data, lo_pos, lo_cl = \
                     Pre.get_data_for_pre(k[NAME_LO_COL], cl_data, res_data, 
-                                         True)  
+                                         True) 
+                    
+                lo_mdl = Pre.get_mdl(k[NAME_LO_COL]) 
                 
                 vi_data, vi_pos, vi_cl = \
                     Pre.get_data_for_pre(k[NAME_VI_COL], cl_data, res_data,
                                          False)
                     
+                vi_mdl = Pre.get_mdl(k[NAME_VI_COL]) 
+                    
                 print "Predicting: %s - %s" % (k[NAME_LO_COL], k[NAME_VI_COL])
                 
                 lo_pre = self.get_pre_values(lo_data, lo_pos, lo_cl, vi_pos, 
-                                              vi_cl)             
+                                              vi_cl, lo_mdl.lo_mdls)             
     
                 vi_pre = self.get_pre_values(vi_data, lo_pos, lo_cl, vi_pos, 
-                                              vi_cl)
+                                              vi_cl, vi_mdl.vi_mdls)
                 
                 self._pre.append(combine_lo_vi(lo_pre, vi_pre))
                 
@@ -175,6 +194,10 @@ class Pre(object):
     @property
     def pre(self):
         return self._pre
+    
+    @property
+    def mdls(self):
+        return self._mdls
     
     @property
     def generated(self):
