@@ -81,14 +81,25 @@ class ClDat(object):
                         # Process text line.        
                         l_txt = l[:-1].strip()
                         
-                        if len(l_txt):                  
+                        if len(l_txt):    
+                                          
                             if l_txt.find(B1_TEXT) >= 0:
-                                self._b1 = extract_list_text(l_txt, NUM_COLS_CL)
+                                
+                                l_text = extract_list_text(l_txt, NUM_COLS_CL)
+                                
+                                for l in l_text:
+                                    self._b1.append([l[i] for i in CL_ORDER])
+                                
                                 print "Read %dx%d from file for B1" % \
                                     (len(self._b1), len(self._b1[0]))
                                 
                             elif l_txt.find(A2_TEXT) >= 0:
-                                self._a2 = extract_list_text(l_txt, NUM_COLS_CL)
+                                
+                                l_text = extract_list_text(l_txt, NUM_COLS_CL)
+                                
+                                for l in l_text:
+                                    self._a2.append([l[i] for i in CL_ORDER])
+                                
                                 print "Read %dx%d from file for A2" % \
                                     (len(self._a2), len(self._a2[0]))
                                     
