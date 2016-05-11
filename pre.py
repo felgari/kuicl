@@ -55,8 +55,6 @@ class Pre(object):
     @staticmethod
     def get_data_for_pre(name, cl_data, res_data, is_lo):
         
-        print name
-        
         pre_data = []
         
         if is_lo:
@@ -82,7 +80,7 @@ class Pre(object):
                 new_row.extend(final_cl_other)
                 new_row.extend([res_d[RES_ELT_COL]])
 
-                pre_data.append(new_row)                             
+                pre_data.append(new_row)                          
                                                
         return pre_data, [cl[CL_POS_COL]] + final_cl
     
