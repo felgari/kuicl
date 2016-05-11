@@ -55,6 +55,8 @@ class Pre(object):
     @staticmethod
     def get_data_for_pre(name, cl_data, res_data, is_lo):
         
+        print name
+        
         pre_data = []
         
         if is_lo:
@@ -75,17 +77,14 @@ class Pre(object):
             if res_d[col] == name:
                 cl_other = get_cl_data_for_name(res_d[col_other], cl_data)
                 final_cl_other = [cl_other[i] for i in the_other_range]
+                
+                new_row = [ cl_other[CL_POS_COL] ]
+                new_row.extend(final_cl_other)
+                new_row.extend([res_d[RES_ELT_COL]])
 
-                if is_lo:
-                    pre_data.append([cl[CL_POS_COL], final_cl, \
-                                     cl_other[CL_POS_COL], final_cl_other, \
-                                     res_d[RES_ELT_COL]])                 
-                else:
-                    pre_data.append([cl_other[CL_POS_COL], final_cl_other, \
-                                     cl[CL_POS_COL], final_cl, \
-                                     res_d[RES_ELT_COL]])                                
+                pre_data.append(new_row)                             
                                                
-        return pre_data, cl[CL_POS_COL], final_cl
+        return pre_data, [cl[CL_POS_COL]] + final_cl
     
     @staticmethod
     def _get_val_index(values, order, sort_values, name):
@@ -108,36 +107,27 @@ class Pre(object):
         return sort_values        
     
     @staticmethod
-    def get_pre_values(data, lo_pos, lo_cl, vi_pos, vi_cl, mdls):
+    def get_pre_values(src_data, target_data, mdls):
         
-        tr_data = []
+        source_data = []
         classes_data = []
         
-        for d in data:            
-            new_d = []            
-            new_d.append(int(d[0]) - int(d[2]))
-            new_d.extend(d[1])
-            new_d.extend(d[3])
+        for d in src_data:            
+            source_data.append(d[:-1])
             
-            tr_data.append(new_d)
-            
-            classes_data.extend([d[4]])
-            
-        prd_data = [ int(lo_pos) - int(vi_pos) ]
-        prd_data.extend(lo_cl)
-        prd_data.extend(vi_cl)
+            classes_data.extend([d[-1]])
         
-        np_tr_data = np.matrix(tr_data)
+        np_src_data = np.matrix(source_data)
         np_classes_data = np.array(classes_data)
-        np_prd_data = np.matrix(prd_data)
+        np_prd_data = np.matrix(target_data)
         
         if mdls:
             cl = CLS[mdls[0]]
         else:
-            cl = RandomForestClassifier(n_estimators = RF_NUM_ESTIMATORS, 
-                                         random_state = RF_SEED)  
+            cl = RandomForestClassifier(n_estimators = RF_NUM_ESTIMATORS,
+                                        random_state = RF_SEED)  
 
-        cl.fit(np_tr_data, np_classes_data)      
+        cl.fit(np_src_data, np_classes_data)      
 
         prd = cl.predict_proba(np_prd_data)
 
@@ -166,25 +156,25 @@ class Pre(object):
                     cl_data = self._a2
                     res_data = a2_res
                     
-                lo_data, lo_pos, lo_cl = \
-                    Pre.get_data_for_pre(k[NAME_LO_COL], cl_data, res_data, 
-                                         True) 
+                lo_data, lo_target_data = Pre.get_data_for_pre(k[NAME_LO_COL], 
+                                                               cl_data,
+                                                               res_data, True) 
                     
                 lo_mdl = Pre.get_mdl(k[NAME_LO_COL]) 
                 
-                vi_data, vi_pos, vi_cl = \
-                    Pre.get_data_for_pre(k[NAME_VI_COL], cl_data, res_data,
-                                         False)
+                vi_data, vi_target_data = Pre.get_data_for_pre(k[NAME_VI_COL], 
+                                                               cl_data,
+                                                               res_data, False)
                     
                 vi_mdl = Pre.get_mdl(k[NAME_VI_COL]) 
                     
                 print "Predicting: %s - %s" % (k[NAME_LO_COL], k[NAME_VI_COL])
                 
-                lo_pre = self.get_pre_values(lo_data, lo_pos, lo_cl, vi_pos, 
-                                              vi_cl, lo_mdl.lo_mdls)             
+                lo_pre = self.get_pre_values(lo_data, lo_target_data, 
+                                             lo_mdl.lo_mdls)             
     
-                vi_pre = self.get_pre_values(vi_data, lo_pos, lo_cl, vi_pos, 
-                                              vi_cl, vi_mdl.vi_mdls)
+                vi_pre = self.get_pre_values(vi_data, vi_target_data, 
+                                             vi_mdl.vi_mdls)
                 
                 self._pre.append(combine_lo_vi(lo_pre, vi_pre))
                 

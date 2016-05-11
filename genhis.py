@@ -41,25 +41,19 @@ def calc_pro_data(r, cl_data):
 
 def calc_pre_data(r, cl_data, res_data):
     
-    lo_data, lo_pos, lo_cl = Pre.get_data_for_pre(r[R_NAME_1_COL], 
-                                                  cl_data, 
-                                                  res_data,
-                                                  True)   
-    
-    vi_data, vi_pos, vi_cl = Pre.get_data_for_pre(r[R_NAME_2_COL], 
-                                                  cl_data, 
-                                                  res_data,
-                                                  False)
+    lo_data, lo_target_data = Pre.get_data_for_pre(r[R_NAME_1_COL], cl_data, 
+                                                   res_data, True)   
     
     lo_mdl = Pre.get_mdl(r[R_NAME_1_COL])
     
-    lo_pre = Pre.get_pre_values(lo_data, lo_pos, lo_cl, vi_pos, vi_cl,
-                                lo_mdl.lo_mdls)  
+    lo_pre = Pre.get_pre_values(lo_data, lo_target_data, lo_mdl.lo_mdls)  
+    
+    vi_data, vi_target_data = Pre.get_data_for_pre(r[R_NAME_2_COL], cl_data, 
+                                                   res_data, False)
     
     vi_mdl = Pre.get_mdl(r[R_NAME_2_COL])           
 
-    vi_pre = Pre.get_pre_values(vi_data, lo_pos, lo_cl, vi_pos, vi_cl,
-                                vi_mdl.vi_mdls)
+    vi_pre = Pre.get_pre_values(vi_data, vi_target_data, vi_mdl.vi_mdls)
     
     return combine_lo_vi(lo_pre, vi_pre)
 
