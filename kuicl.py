@@ -126,14 +126,15 @@ def main(progargs):
             generate_hist(k.index, cl, k.k, pro.pro, pre.pre, p.p)
             
             print "Calculating prun ..."     
-            pr, pr_ap, un = do_prun(k.index, k.k, pro.pro)
+            pred_rf, ap_rf, pref_nn, ap_nn, un = do_prun(k.index, k.k, pro.pro)
             
             print "Loading external data ..."
             extd = ExtD(k.index)
             
             extd.load_data()
             
-            save_all(k.k, extd.mean, p.p, pr, pr_ap, un, k.index)
+            save_all(k.k, extd.mean, p.p, pred_rf, ap_rf, pref_nn, ap_nn, un, \
+                     k.index)
             
         if progargs.force_calc or not report_generated(k.index):
             do_report(k.index, k.k)

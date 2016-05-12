@@ -23,6 +23,8 @@ import csv
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 from sklearn import metrics
+import tensorflow as tf
+import tensorflow.contrib.learn as skflow
 
 from ctes import *
 from ap import calculate_ap
@@ -125,6 +127,38 @@ def link_perc_to_cl(prd, cl):
         
     return data_out
 
+def prepare_data_for_nn(hist_data, data_to_predict, cl_data):
+    
+    np_hist_data = np.matrix(hist_data).astype(float)
+    
+    np_cl_data_num = np.array([CL_TO_NUM[x] for x in cl_data])
+    
+    np_prd_data = np.matrix(data_to_predict).astype(float)
+    
+    return np_hist_data, np_prd_data, np_cl_data_num
+
+def nn_model(x, y):
+
+    layers = skflow.ops.dnn(x, NN_LEVELS, tf.tanh)
+    
+    return skflow.models.logistic_regression(layers, y)
+
+def predict_nn(hist_data, data_to_predict, cl_data):
+    
+    np_hist_data, np_prd_data, np_classes_data = \
+        prepare_data_for_nn(hist_data, data_to_predict, cl_data)
+    
+    nn = skflow.TensorFlowEstimator(model_fn=nn_model, n_classes=3)
+    
+    nn.fit(np_hist_data, np_classes_data, logdir = './log')
+    
+    score = metrics.accuracy_score(np_classes_data, nn.predict(np_hist_data))
+    print("Accuracy NN: %f" % score)
+      
+    prd = nn.predict_proba(np_prd_data) 
+    
+    return link_perc_to_cl(prd, CLASSES_PRE)
+
 def predict_rf(hist_data, data_to_predict, cl_data):
     
     np_hist_data = np.matrix(hist_data)
@@ -153,9 +187,10 @@ def predict(to_predict, pred_data):
     
     if len(hist_data) and len(data_to_predict):
         
-        data_out = predict_rf(hist_data, data_to_predict, cl_data)
+        data_out_rf = predict_rf(hist_data, data_to_predict, cl_data)
+        data_out_nn = predict_nn(hist_data, data_to_predict, cl_data)
         
-    return data_out
+    return data_out_rf, data_out_nn
         
 def generate_pred(data_to_predict, pre_data, index):  
     
@@ -165,14 +200,17 @@ def generate_pred(data_to_predict, pre_data, index):
     data_t1 = [x for x in data_to_predict if x[HIST_PRED_L_COL] == int(TYPE_1_COL)]
     data_t2 = [x for x in data_to_predict if x[HIST_PRED_L_COL] == int(TYPE_2_COL)]
     
-    pred_out_1 = predict(data_t1, pre_data_t1)
-    pred_out_2 = predict(data_t2, pre_data_t2)    
+    pred_out_1_rf, pred_out_1_nn = predict(data_t1, pre_data_t1)
+    pred_out_2_rf, pred_out_2_nn = predict(data_t2, pre_data_t2)    
     
-    pred_out = pred_out_1 + pred_out_2
+    pred_out_rf = pred_out_1_rf + pred_out_2_rf
+    pred_out_nn = pred_out_1_nn + pred_out_2_nn
         
-    save_res(pred_out, PRED_OUT_FILE_NAME_PREFIX + index + PRED_OUT_FILE_EXT)  
+    save_res(pred_out_rf, PRED_RF_OUT_FILE_NAME_PREFIX + index + PRED_OUT_FILE_EXT)  
     
-    return pred_out
+    save_res(pred_out_nn, PRED_NN_OUT_FILE_NAME_PREFIX + index + PRED_OUT_FILE_EXT)
+    
+    return pred_out_rf, pred_out_nn
 
 def generate_ap(index_name, data_to_predict, final_pred):
     
@@ -284,11 +322,14 @@ def do_prun(index, k, pro):
     data_for_pred = [x[:HIST_PRED_REF_LAST_COL] 
                        for x in hist_data if len(x[HIST_PRED_R_COL])]
     
-    final_pred = generate_pred(data_to_pred, data_for_pred, index) 
+    pred_rf, pred_nn = generate_pred(data_to_pred, data_for_pred, index) 
           
-    ap_data, comp_ap_data = \
-        generate_ap(index + AP_FILE_PRE_NAME_SUFFIX, data_to_pred, final_pred)     
+    ap_rf, _ = \
+        generate_ap(index + AP_FILE_RF_PRE_NAME_SUFFIX, data_to_pred, pred_rf)
+        
+    ap_nn, _ = \
+        generate_ap(index + AP_FILE_NN_PRE_NAME_SUFFIX, data_to_pred, pred_nn)     
 
     un = calculate_un(k, hist_data, pro, index)
     
-    return final_pred, ap_data, un
+    return pred_rf, ap_rf, pred_nn, ap_nn, un
