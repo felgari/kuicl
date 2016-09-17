@@ -64,35 +64,40 @@ def calc_ap_base(data):
     for d in data:       
         values = [ int(x) for x in d[AP_FIRST_P_COL:]]
         
-        maxi = max(values)
-        index_maxi = values.index(maxi)
+        if sum(values) > AP_MIN_PERCENT:
         
-        mini = min(values)
-        index_mini = values.index(mini)
-        
-        index_mid = get_second_index(index_maxi, index_mini)
-        
-        if maxi >= HIST_MAX_P: # One clear option
-            new_base = CURRENT_MAX[index_maxi]           
-        elif mini <= HIST_MIN_P: # Two options
-            if d[AP_LI_COL] == AP_LI_TYPE_1:
-                new_base = CURRENT_MAX[index_maxi]
-            else:
-                new_base = CURRENT_MAX[index_maxi] + CURRENT_MAX[index_mid]
-        else: # Three options.                           
-            new_base = CURRENT_MAX[index_maxi] + CURRENT_MAX[index_mid] 
+            maxi = max(values)
+            index_maxi = values.index(maxi)
+            
+            mini = min(values)
+            index_mini = values.index(mini)
+            
+            index_mid = get_second_index(index_maxi, index_mini)
+            
+            if maxi >= HIST_MAX_P: # One clear option
+                new_base = CURRENT_MAX[index_maxi]           
+            elif mini <= HIST_MIN_P: # Two options
+                if d[AP_LI_COL] == AP_LI_TYPE_1:
+                    new_base = CURRENT_MAX[index_maxi]
+                else:
+                    new_base = CURRENT_MAX[index_maxi] + CURRENT_MAX[index_mid]
+            else: # Three options.                           
+                new_base = CURRENT_MAX[index_maxi] + CURRENT_MAX[index_mid] 
+                    
+            if new_base == MAX_IS_SECOND:
+                if mini > AP_MIN_VAL_P:
+                    new_base = NAMES_AP_STR
+                else:
+                    new_base += CURRENT_MAX[index_mid]
+                    
+            try:
+                base.append(AP_CONV[new_base])
+            except KeyError:
+                base.append(new_base)
                 
-        if new_base == MAX_IS_SECOND:
-            if mini > AP_MIN_VAL_P:
-                new_base = NAMES_AP_STR
-            else:
-                new_base += CURRENT_MAX[index_mid]
-                
-        try:
-            base.append(AP_CONV[new_base])
-        except KeyError:
-            base.append(new_base)
-    
+        else:
+            base.append(MAX_IS_FIRST)
+            
     return base
 
 def complementary(data):
