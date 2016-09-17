@@ -93,6 +93,10 @@ class KScrap(object):
             for i, first_it in enumerate(first):
                 type_el = TYPE_1_COL
                 
+                print first_it
+                
+                print second[i]
+                
                 try:               
                     first_name = K_B1_STR_CONVERT[first_it]
                     second_name = K_B1_STR_CONVERT[second[i]]
