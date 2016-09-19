@@ -51,7 +51,11 @@ class Pro(object):
     def get_data_for_pro(name_col, p_range, cl_data):
                     
         data_from_name = get_cl_data_for_name(name_col, cl_data)
-        
+        """
+        print name_col
+        print data_from_name
+        print CL_POS_COL
+        """
         pos = int(data_from_name[CL_POS_COL])
         
         data_from_range = [int(data_from_name[i]) for i in p_range]
@@ -95,5 +99,5 @@ class Pro(object):
     
     @property
     def generated(self):
-        return len(self._pro)
+        return len(self._pro) > 0
         
