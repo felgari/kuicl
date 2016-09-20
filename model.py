@@ -19,8 +19,10 @@
 """
 
 import csv
+import os
 
 from ctes import *
+import modsel
 
 class Model(object):
     
@@ -61,6 +63,9 @@ def read_mdl_file():
     
     file_name = MODELS_FILENAME
     
+    if not os.path.exists(MODELS_FILENAME):
+        modsel.main()
+        
     print "Reading mdl file: %s" % file_name
                 
     mdls = []
@@ -100,5 +105,5 @@ def read_mdl_file():
         print "ERROR: reading file %s" % file_name
     except IOError:
         print "ERROR: reading file %s" % file_name
-            
+        
     return mdls
