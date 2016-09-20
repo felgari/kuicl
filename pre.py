@@ -41,7 +41,10 @@ class Pre(object):
         self._b1 = b1
         self._a2 = a2
         
-        self._generate(force_calc)
+        try:
+            self._generate(force_calc)
+        except ZeroDivisionError:
+            self._pre = []
         
     @classmethod
     def get_mdl(cls, name):
@@ -125,12 +128,15 @@ class Pre(object):
             cl = RandomForestClassifier(n_estimators = RF_NUM_ESTIMATORS,
                                         random_state = RF_SEED)  
 
-        cl.fit(np_src_data, np_classes_data)      
-
-        prd = cl.predict_proba(np_prd_data)
-
-        sort_pre_val = Pre._sort_pre_values(prd[0],
-                                            np.ndarray.tolist(cl.classes_))
+        if len(np_classes_data) == len(CLASSES_PRE):
+            cl.fit(np_src_data, np_classes_data)
+            
+            prd = cl.predict_proba(np_prd_data)
+    
+            sort_pre_val = Pre._sort_pre_values(prd[0],
+                                                np.ndarray.tolist(cl.classes_))
+        else:
+            sort_pre_val = [0.0] * len(CLASSES_PRE)
         
         return [ int(100 * x) for x in sort_pre_val]
     
@@ -189,4 +195,4 @@ class Pre(object):
     
     @property
     def generated(self):
-        return len(self._pre)
+        return len(self._pre) > 0
