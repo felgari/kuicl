@@ -63,27 +63,32 @@ def evaluate_models(name, res, cl, is_lo):
     
     for clf_name, clf, i in zip(CL_NAMES, CLS, range(len(CL_NAMES))):
     
-        scores = cross_validation.cross_val_score(clf, data, target, \
-                                                  cv=CV_NUM_SETS)
-        
-        #print("Accuracy of %s: %0.2f (+/- %0.2f)" % \
-              #(clf_name, scores.mean(), scores.std() * 2))
-        
-        if not len(best_models):
-            best_models.append(i)
-            best_mean_score = scores.mean()
-            best_std_score = scores.std()
-        elif best_mean_score - EPS < scores.mean() < best_mean_score + EPS:
-            if scores.std() + EPS < best_std_score:
+        if len(CL_NAMES) > 1:
+            scores = cross_validation.cross_val_score(clf, data, target, \
+                                                      cv=CV_NUM_SETS)
+            
+            if not len(best_models):
+                best_models.append(i)
+                best_mean_score = scores.mean()
+                best_std_score = scores.std()
+            elif best_mean_score - EPS < scores.mean() < best_mean_score + EPS:
+                if scores.std() + EPS < best_std_score:
+                    best_models = [i]
+                    best_mean_score = scores.mean()
+                    best_std_score = scores.std()        
+                elif best_std_score - EPS < scores.std() < best_std_score + EPS:
+                    best_models.append(i)
+            elif best_mean_score + EPS < scores.mean():
                 best_models = [i]
                 best_mean_score = scores.mean()
-                best_std_score = scores.std()        
-            elif best_std_score - EPS < scores.std() < best_std_score + EPS:
-                best_models.append(i)
-        elif best_mean_score + EPS < scores.mean():
-            best_models = [i]
-            best_mean_score = scores.mean()
-            best_std_score = scores.std()
+                best_std_score = scores.std()
+                
+            #print("Accuracy of %s: %0.2f (+/- %0.2f)" % \
+                  #(clf_name, scores.mean(), scores.std() * 2))
+        else:
+            best_models.append(i)
+            best_mean_score = 1.0
+            best_std_score = 0.0
             
     #print "Best models (%0.2f): %s" % \
     #    (best_mean_score, [CL_NAMES[i] for i in best_models])
