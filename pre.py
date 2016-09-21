@@ -128,7 +128,7 @@ class Pre(object):
             cl = RandomForestClassifier(n_estimators = RF_NUM_ESTIMATORS,
                                         random_state = RF_SEED)  
 
-        if len(np_classes_data) == len(CLASSES_PRE):
+        if len(np_classes_data) > 1:
             cl.fit(np_src_data, np_classes_data)
             
             prd = cl.predict_proba(np_prd_data)
