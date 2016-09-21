@@ -179,6 +179,8 @@ def predict_rf(hist_data, data_to_predict, cl_data):
 
 def predict(to_predict, pred_data):
     
+    data_out_rf = []
+    data_out_nn = []
     data_out = []
         
     hist_data, cl_data = process_input_data(pred_data)
