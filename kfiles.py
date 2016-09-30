@@ -123,7 +123,7 @@ def save_data_to_csv(out_file_name, data):
     except IOError as ioe:
          print "Error saving file: '%s'" % out_file_name
          
-def save_all(k, extm, p, p_rf, ap_rf, p_nn, ap_nn, un, index):
+def save_all(k, extm, p, p_rf, ap_rf, p_nn, ap_nn, index):
     
     out_file_name = OUTPUT_FILE_PREFIX + index + OUTPUT_FILE_NAME_EXT
     
@@ -135,9 +135,8 @@ def save_all(k, extm, p, p_rf, ap_rf, p_nn, ap_nn, un, index):
                   
             for i, k_elt in enumerate(k):    
                 
-                row = [k_elt[K_NAME_1_COL], k_elt[K_NAME_2_COL]] + \
-                    extm[i] + p[i] + p_rf[i] + [ap_rf[i]] + p_nn[i] + \
-                    [ap_nn[i]] + [un[i]]
+                row = [k_elt[K_NAME_1_COL], k_elt[K_NAME_2_COL]] + extm[i] + \
+                    p[i] + p_rf[i] + [ap_rf[i]] + p_nn[i] + [ap_nn[i]]
                        
                 f.write("%s\n" % CSV_DELIMITER.join(str(e) for e in row))
         
