@@ -44,7 +44,7 @@ def load_source_data(index):
     k = KDat(index)
     
     if k.loaded:
-        print "K data loaded successfully for index %s" % k.index
+        print "Data loaded successfully for index %s" % k.index
         cl = ClDat(k.index)
         
         if cl.loaded:
@@ -98,7 +98,7 @@ def generate_hist(index, cl, k, pro, pre, p):
         b1_hist = gen_hist(b1_res, cl.b1, HIST_FILE_B1, TYPE_1_COL)
         a2_hist = gen_hist(a2_res, cl.a2, HIST_FILE_A2, TYPE_2_COL)
         
-        generate_final_hist(index, b1_hist, a2_hist, k, pro, pre, p)
+        generate_final_hist(index, b1_hist, a2_hist, k, pro, pre, p, cl)
     else:
         print "ERROR: Generation of historical not possible, res not available."
 
@@ -111,12 +111,12 @@ def main(progargs):
         retrieve_res()
     
     if progargs.index != DEFAULT_INDEX:
-        print "Let's go with index %s ..." % progargs.index
+        print "Let's go with index provided: %s ..." % progargs.index
     else:
-        print "Let's go without index ..."
+        print "Let's go without index, so try to find the current one ..."
         
     success, k, cl = load_source_data(progargs.index)
-        
+
     if success:
         success, pro, pre, p = generate_p(k, cl, progargs.force_calc)    
                     
@@ -126,15 +126,14 @@ def main(progargs):
             generate_hist(k.index, cl, k.k, pro.pro, pre.pre, p.p)
             
         print "Calculating prun ..."     
-        pred_rf, ap_rf, pref_nn, ap_nn, un = do_prun(k.index, k.k, pro.pro)
+        pred_rf, ap_rf, pref_nn, ap_nn = do_prun(k.index, k.k, pro.pro)
         
         print "Loading external data ..."
         extd = ExtD(k.index)
         
         extd.load_data()
         
-        save_all(k.k, extd.mean, p.p, pred_rf, ap_rf, pref_nn, ap_nn, un, \
-                 k.index)
+        save_all(k.k, extd.mean, p.p, pred_rf, ap_rf, pref_nn, ap_nn, k.index)
             
         if progargs.force_calc or not report_generated(k.index):
             do_report(k.index, k.k)

@@ -58,16 +58,6 @@ def read_hist_data(file_name):
     
     return data
 
-def is_pre(hist_row):
-    
-    r = hist_row[HIST_PRED_R_COL]
-    data_ref = hist_row[HIST_PRED_REF_FIRST_COL:HIST_PRED_REF_LAST_COL]
-    
-    r_pos = NAMES_AP_STR.find(r)
-    min_pos = data_ref.index(min(data_ref))
-    
-    return r_pos != min_pos
-
 def save_res(data, out_file_name):
     
     file_name = out_file_name
@@ -331,7 +321,5 @@ def do_prun(index, k, pro):
         
     ap_nn, _ = \
         generate_ap(index + AP_FILE_NN_PRE_NAME_SUFFIX, data_to_pred, pred_nn)     
-
-    un = calculate_un(k, hist_data, pro, index)
     
-    return pred_rf, ap_rf, pred_nn, ap_nn, un
+    return pred_rf, ap_rf, pred_nn, ap_nn
