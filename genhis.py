@@ -63,17 +63,10 @@ def gen_hist(res, cl, file_name, p_type):
     
     hist = read_input_file(file_name)
     
-    if len(hist):
-        j_values = [ int(x[HIST_PRED_J_COL]) for x in hist]
-        
-        max_j_read = max(j_values)
-    else:
-        max_j_read = FIRST_ENTRY_HIST
-    
     j_res_max = max([ int(r[R_J_COL]) for r in res
                      if int(r[R_J_COL]) >= FIRST_ENTRY_HIST])
     
-    for j in range(max_j_read + 1, j_res_max + 1):
+    for j in range(FIRST_ENTRY_HIST, j_res_max + 1):
         
         print "Generating j: %d" % j
         
@@ -81,18 +74,27 @@ def gen_hist(res, cl, file_name, p_type):
         
         res_data = [ r for r in res if int(r[R_J_COL]) < j ]
         
-        for r in res_j:
-            pro_data = calc_pro_data(r, cl)
+        for r in res_j:  
             
-            pre_data = calc_pre_data(r, cl, res_data)
+            new_row = [int(p_type), r[R_M_COL]] 
             
-            p_data = PDat.calc_final_p(pro_data, pre_data, p_type)
-            
-            new_row = [j, int(p_type), r[R_M_COL]]
-            
-            new_row.extend(pro_data)
-            new_row.extend(pre_data)
-            new_row.extend(p_data)
+            if HIST_TYPE:       
+                pro_data = calc_pro_data(r, cl)
+                pre_data = calc_pre_data(r, cl, res_data)
+                p_data = PDat.calc_final_p(pro_data, pre_data, p_type)
+                
+                new_row = [int(p_type), r[R_M_COL]]
+                new_row.extend(pro_data)
+                new_row.extend(pre_data)
+                new_row.extend(p_data)
+                new_row.extend([r[R_NAME_1_COL], r[R_NAME_2_COL]])
+            else:
+                cl_lo = get_cl_data_for_name(r[R_NAME_1_COL], cl)
+                new_row.extend([cl_lo[i] for i in LO_D_RANGE])
+                
+                cl_vi = get_cl_data_for_name(r[R_NAME_2_COL], cl)
+                new_row.extend([cl_vi[i] for i in VI_D_RANGE])
+                
             new_row.extend([r[R_NAME_1_COL], r[R_NAME_2_COL]])
             
             hist.append(new_row)
@@ -114,17 +116,30 @@ def load_local_data(index, cl_b1, cl_a2):
     return kdat.loaded and pro.generated and pre.generated, \
             kdat.k, pro.pro, pre.pre, pdat.p
 
-def generate_final_hist(index, b1_hist, a2_hist, k, pro_data, pre_data, p_data):
+def generate_final_hist(index, b1_hist, a2_hist, k, pro_data, pre_data, p_data, cldat):
     
     hist = b1_hist + a2_hist
     
     for i, k_elt in enumerate(k):
         
-        new_row = [int(index), int(k_elt[TYPE_COL]), '']
+        if k_elt[K_TYPE_COL] == TYPE_1_COL:
+            cl = cldat.b1
+        else:
+            cl = cldat.a2
+        
+        new_row = [int(k_elt[TYPE_COL]), '']
+        
+        if HIST_TYPE:             
+            new_row.extend(pro_data[i])
+            new_row.extend(pre_data[i])
+            new_row.extend(p_data[i])
+        else:
+            cl_lo = get_cl_data_for_name(k_elt[NAME_LO_COL], cl)
+            new_row.extend([cl_lo[i] for i in LO_D_RANGE])
             
-        new_row.extend(pro_data[i])
-        new_row.extend(pre_data[i])
-        new_row.extend(p_data[i])
+            cl_vi = get_cl_data_for_name(k_elt[NAME_VI_COL], cl)
+            new_row.extend([cl_vi[i] for i in VI_D_RANGE])        
+            
         new_row.extend([k_elt[NAME_LO_COL], k_elt[NAME_VI_COL]])
         
         hist.append(new_row)
@@ -149,7 +164,7 @@ def main(index = DEFAULT_INDEX):
                 success, k, pro, pre, p = load_local_data(index, cl.b1, cl.a2)
                 
                 if success:
-                    generate_final_hist(index, b1_hist, a2_hist, k, pro, pre, p)
+                    generate_final_hist(index, b1_hist, a2_hist, k, pro, pre, p, cldat)
                 else:
                     print "ERROR: Generation of historical not possible, local data not available."
         else: 
