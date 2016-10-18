@@ -68,8 +68,6 @@ def gen_hist(res, cl, file_name, p_type):
     
     for j in range(FIRST_ENTRY_HIST, j_res_max + 1):
         
-        print "Generating j: %d" % j
-        
         res_j = [ r for r in res if int(r[R_J_COL]) == j ]
         
         res_data = [ r for r in res if int(r[R_J_COL]) < j ]
