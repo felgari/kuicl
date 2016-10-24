@@ -45,7 +45,7 @@ def report_file_name(index):
     
     return REP_OUT_FILE_PREFIX + index + REP_OUT_FILE_EXT 
 
-def process_k(k_data, b1_data, a2_data, index):
+def process_k(k_data, b1_data, a2_data, cl, index):
     
     out_file_name = report_file_name(index)
     
@@ -62,31 +62,47 @@ def process_k(k_data, b1_data, a2_data, index):
                 
                 if elt_type == TYPE_1_COL:
                     data = b1_data
+                    cl_1 = cl.b1_data(k_elt[K_NAME_1_COL])
+                    cl_2 = cl.b1_data(k_elt[K_NAME_2_COL])
                 else:
                     data = a2_data
+                    cl_1 = cl.a2_data(k_elt[K_NAME_1_COL])
+                    cl_2 = cl.a2_data(k_elt[K_NAME_2_COL])
                     
                 mat1 = get_matchings(k_name_1, data, True)
                 mat2 = get_matchings(k_name_2, data, False)
                 
                 f.write("%s\n" % GEN_SEP)
-                f.write("-> %s - %s\n" % (k_name_1, k_name_2))
+                f.write("-> %s (%s) - %s (%s)\n" % \
+                        (k_name_1, cl_1[CL_POS_COL], k_name_2, cl_2[CL_POS_COL]))
                 f.write("%s\n" % FIRST_SEP)
+                
                 for m in mat1:
-                    f.write("%s\n" % m)
+                    if elt_type == TYPE_1_COL:
+                        mat_cl = cl.b1_data(m[MAT_NAME_2_COL])
+                    else:
+                        mat_cl = cl.a2_data(m[MAT_NAME_2_COL])
+                    f.write("%s (%s)\n" % (m, mat_cl[CL_POS_COL]))
+                    
                 f.write("%s\n" % SECOND_SEP)
+                
                 for m in mat2:
-                    f.write("%s\n" % m)
+                    if elt_type == TYPE_1_COL:
+                        mat_cl = cl.b1_data(m[MAT_NAME_1_COL])
+                    else:
+                        mat_cl = cl.a2_data(m[MAT_NAME_1_COL])
+                    f.write("%s (%s)\n" % (m, mat_cl[CL_POS_COL]))
                     
     except IOError as ioe:
          print "Error saving file: '%s'" % out_file_name               
 
-def do_report(index, k):
+def do_report(index, k, cl):
     
     b1_data = read_res_file(B1_RES_FILE)    
     
     a2_data = read_res_file(A2_RES_FILE)
     
-    process_k(k, b1_data, a2_data, index)
+    process_k(k, b1_data, a2_data, cl, index)
     
 def report_generated(index):
     
