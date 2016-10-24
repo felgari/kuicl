@@ -125,6 +125,22 @@ class ClDat(object):
             
         except IOError as ioe:
              print "Error saving file: '%s'" % out_file_name  
+             
+    def b1_data(self, name):
+        
+        for c in self._b1:
+            if c[CL_NAME_COL] == name:
+                return c
+            
+        return []
+    
+    def a2_data(self, name):
+        
+        for c in self._a2:
+            if c[CL_NAME_COL] == name:
+                return c
+            
+        return []
         
     @property
     def b1(self):

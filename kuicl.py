@@ -136,7 +136,7 @@ def main(progargs):
         save_all(k.k, extd.mean, p.p, pred_rf, ap_rf, pref_nn, ap_nn, k.index)
             
         if progargs.force_calc or not report_generated(k.index):
-            do_report(k.index, k.k)
+            do_report(k.index, k.k, cl)
     else:
         print "Source data couldn't be loaded, nothing calculated."
         
