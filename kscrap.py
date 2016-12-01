@@ -371,8 +371,11 @@ class KScrap(object):
         
         temp_lst = []        
         
-        for cobj in bsObj.findAll(CL_COBJ, CL_EQ_DICT):        
-            temp_lst.append(cobj.get_text()) 
+        for cobj in bsObj.findAll(CL_COBJ, CL_EQ_DICT): 
+            the_text = cobj.get_text()
+            if the_text[-1] == CL_ESP_CHR:
+                the_text = the_text[:-1]
+            temp_lst.append(the_text)
             
         for i in range(size):
             try:
