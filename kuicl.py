@@ -35,6 +35,7 @@ from prun import do_prun
 from extd import ExtD
 from genhis import gen_hist, generate_final_hist
 from kfiles import read_res_file, save_all
+from avpos import AvPos
 from report import report_generated, do_report 
 
 def load_source_data(index):
@@ -106,18 +107,27 @@ def main(progargs):
     """Main function.
     """    
     
+    print "Here we go ...!!!"
+    
     if progargs.retrieve_res:
         print "Retrieving res ..."
         retrieve_res()
+    else:
+        print "Using existing res, retrieving more res not asked ..."
     
     if progargs.index != DEFAULT_INDEX:
-        print "Let's go with index provided: %s ..." % progargs.index
+        print "Let's go with the index provided: %s ..." % progargs.index
     else:
-        print "Let's go without index, so try to find the current one ..."
+        print "No index provided, so try to find the current one ..."
         
     success, k, cl = load_source_data(progargs.index)
 
     if success:
+        print "Calculating avpos ..."
+        avp = AvPos()
+    
+        avp.get_avpos()        
+        
         success, pro, pre, p = generate_p(k, cl, progargs.force_calc)    
                     
         if success:

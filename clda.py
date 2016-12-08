@@ -33,19 +33,22 @@ class ClDat(object):
         self._b1 = []
         self._a2 = []
         
-        # Try read data from a local file.
-        self._read_cldata()
-            
-        # If not read from local, retrieve from external source.
-        if not self.loaded:
-            self._b1, self._a2 = KScrap.scrap_cl_data()
-            
-            if self.loaded:
-                self._save_cldata()
-            else:
-                # If data isn't retrieved, update the index with the value 
-                # received.
-                self._index = index
+        if index != NO_READ_INDEX:
+        
+            # Try read data from a local file.
+            file_name = self._get_file_to_read()
+            self.read_cldata(file_name)
+                
+            # If not read from local, retrieve from external source.
+            if not self.loaded:
+                self._b1, self._a2 = KScrap.scrap_cl_data()
+                
+                if self.loaded:
+                    self._save_cldata()
+                else:
+                    # If data isn't retrieved, update the index with the value 
+                    # received.
+                    self._index = index
                 
                 
     def _get_file_to_read(self):
@@ -65,14 +68,13 @@ class ClDat(object):
             
         return file_name
                 
-    def _read_cldata(self):
+    def read_cldata(self, file_name):
         
         lines = []   
         
-        file_name = self._get_file_to_read()
-        
         if len(file_name):
-            print "Reading data from file: %s" % file_name
+            if self._index != NO_READ_INDEX:
+                print "Reading data from file: %s" % file_name
             
             try:
                 with open(file_name, "r") as f:
@@ -90,8 +92,9 @@ class ClDat(object):
                                 for l in l_text:
                                     self._b1.append([l[i] for i in CL_ORDER])
                                 
-                                print "Read %dx%d from file for B1" % \
-                                    (len(self._b1), len(self._b1[0]))
+                                if self._index != NO_READ_INDEX:
+                                    print "Read %dx%d from file for B1" % \
+                                        (len(self._b1), len(self._b1[0]))
                                 
                             elif l_txt.find(A2_TEXT) >= 0:
                                 
@@ -99,9 +102,10 @@ class ClDat(object):
                                 
                                 for l in l_text:
                                     self._a2.append([l[i] for i in CL_ORDER])
-                                
-                                print "Read %dx%d from file for A2" % \
-                                    (len(self._a2), len(self._a2[0]))
+                                    
+                                if self._index != NO_READ_INDEX:
+                                    print "Read %dx%d from file for A2" % \
+                                        (len(self._a2), len(self._a2[0]))
                                     
             except IOError as ioe:
                 print "ERROR: Reading file '%s'" % file_name  
