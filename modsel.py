@@ -83,15 +83,15 @@ def evaluate_models(name, res, cl, is_lo):
                 best_mean_score = scores.mean()
                 best_std_score = scores.std()
                 
-            #print("Accuracy of %s: %0.2f (+/- %0.2f)" % \
-                  #(clf_name, scores.mean(), scores.std() * 2))
+            print("Accuracy of %s: %0.2f (+/- %0.2f)" % \
+                  (clf_name, scores.mean(), scores.std() * 2))
         else:
             best_models.append(i)
             best_mean_score = 1.0
             best_std_score = 0.0
             
-    #print "Best models (%0.2f): %s" % \
-    #    (best_mean_score, [CL_NAMES[i] for i in best_models])
+    print "Best models (%0.2f): %s" % \
+        (best_mean_score, [CL_NAMES[i] for i in best_models])
         
     return [best_mean_score] + best_models
 
