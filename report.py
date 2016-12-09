@@ -24,6 +24,8 @@ import os
 import csv
 
 from ctes import *
+from avpos import AvPos
+from resdifpos import ResDiffPos
 from kfiles import read_input_file, read_res_file
 
 def get_matchings(name, data, is_first):
@@ -45,15 +47,24 @@ def report_file_name(index):
     
     return REP_OUT_FILE_PREFIX + index + REP_OUT_FILE_EXT 
 
-def process_k(k_data, b1_data, a2_data, cl, index):
+def process_k(k_data, b1_data, a2_data, cl, index, pred_rf, pre, ex_mean):
     
     out_file_name = report_file_name(index)
+    
+    avp = AvPos() 
+
+    avp.calculate()   
+    
+    rdp = ResDiffPos()
+    
+    rdp.calculate()
     
     print "Saving to file: %s" % out_file_name
     
     try:    
     
         with open(out_file_name, 'w') as f: 
+            idx = 0
         
             for k_elt in k_data:
                 elt_type = k_elt[K_TYPE_COL]
@@ -73,8 +84,22 @@ def process_k(k_data, b1_data, a2_data, cl, index):
                 mat2 = get_matchings(k_name_2, data, False)
                 
                 f.write("%s\n" % GEN_SEP)
+                
                 f.write("-> %s (%s) - %s (%s)\n" % \
                         (k_name_1, cl_1[CL_POS_COL], k_name_2, cl_2[CL_POS_COL]))
+                
+                f.write("His %s\n" % pred_rf[idx])
+                f.write("Pre %s\n" % pre[idx])
+                f.write("Ext %s\n" % ex_mean[idx])
+                
+                f.write("Trend %s\n" % \
+                        rdp.trend(cl_1[CL_POS_COL], cl_2[CL_POS_COL], elt_type))
+                
+                f.write("Pos. %s: %s %s\n" % \
+                        (k_name_1, avp.avpos(k_name_1), avp.trend(k_name_1)))
+                f.write("Pos. %s: %s %s\n" % \
+                        (k_name_2, avp.avpos(k_name_2), avp.trend(k_name_2)))
+                
                 f.write("%s\n" % FIRST_SEP)
                 
                 for m in mat1:
@@ -93,16 +118,20 @@ def process_k(k_data, b1_data, a2_data, cl, index):
                         mat_cl = cl.a2_data(m[MAT_NAME_1_COL])
                     f.write("%s (%s)\n" % (m, mat_cl[CL_POS_COL]))
                     
+                idx += 1
+                    
     except IOError as ioe:
          print "Error saving file: '%s'" % out_file_name               
 
-def do_report(index, k, cl):
+def do_report(index, k, cl, pred_rf, pre, ex_mean): 
+    
+    print "Generating report ..."
     
     b1_data = read_res_file(B1_RES_FILE)    
     
     a2_data = read_res_file(A2_RES_FILE)
     
-    process_k(k, b1_data, a2_data, cl, index)
+    process_k(k, b1_data, a2_data, cl, index, pred_rf, pre, ex_mean)
     
 def report_generated(index):
     

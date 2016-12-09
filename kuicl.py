@@ -35,7 +35,6 @@ from prun import do_prun
 from extd import ExtD
 from genhis import gen_hist, generate_final_hist
 from kfiles import read_res_file, save_all
-from avpos import AvPos
 from report import report_generated, do_report 
 
 def load_source_data(index):
@@ -123,17 +122,12 @@ def main(progargs):
     success, k, cl = load_source_data(progargs.index)
 
     if success:
-        print "Calculating avpos ..."
-        avp = AvPos()
-    
-        avp.get_avpos()        
-        
         success, pro, pre, p = generate_p(k, cl, progargs.force_calc)    
                     
         if success:
             generate_ap(k.k, p.p, k.index)
             
-            generate_hist(k.index, cl, k.k, pro.pro, pre.pre, p.p)
+            #generate_hist(k.index, cl, k.k, pro.pro, pre.pre, p.p)
             
         print "Calculating prun ..."     
         pred_rf, ap_rf, pref_nn, ap_nn = do_prun(k.index, k.k, pro.pro)
@@ -145,8 +139,7 @@ def main(progargs):
         
         save_all(k.k, extd.mean, p.p, pred_rf, ap_rf, pref_nn, ap_nn, k.index)
             
-        if progargs.force_calc or not report_generated(k.index):
-            do_report(k.index, k.k, cl)
+        do_report(k.index, k.k, cl, pred_rf, pre.pre, extd.mean)
     else:
         print "Source data couldn't be loaded, nothing calculated."
         
