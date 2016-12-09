@@ -29,11 +29,29 @@ class AvPos(object):
     
     def __init__(self):
         
-        self.__dir = None
+        self._dir = None
         
-        self.__cl_files = []
+        self._cl_files = []
         
-        self.__cl_files_order = []
+        self._cl_files_order = []
+        
+        self._avpos = {}
+        
+    def avpos(self, name):
+        return self._avpos[name]
+    
+    def trend(self, name):
+        
+        val = self._avpos[name]
+        
+        val = val[:-AVP_LAST_POS]
+        
+        tr = sum(val) / float(len(val))
+        
+        if tr > val[-1]:
+            return AVPOS_TREND_UP
+        else:
+            return AVPOS_TREND_DOWN
         
     def _compose_dir_name(self):
         
@@ -44,7 +62,7 @@ class AvPos(object):
         if now.month < REF_MONTH:
             first_year = first_year - 1
             
-        self.__dir = str(first_year - 2000) + "-" + str(first_year + 1 - 2000)
+        self._dir = str(first_year - 2000) + "-" + str(first_year + 1 - 2000)
     
     def _get_cl_files(self, dir):
         
@@ -61,10 +79,10 @@ class AvPos(object):
         
         self._compose_dir_name()
         
-        self.__cl_files = self._get_cl_files(self.__dir)
+        self._cl_files = self._get_cl_files(self._dir)
         
-        self.__cl_files_order = \
-            [ self._extract_order(fn) for fn in self.__cl_files ]
+        self._cl_files_order = \
+            [ self._extract_order(fn) for fn in self._cl_files ]
             
     def _add_cl(self, avpos, cldata):
         
@@ -87,7 +105,7 @@ class AvPos(object):
             
         return avpos
         
-    def get_avpos(self):
+    def calculate(self):
         
         avpos = []
         
@@ -95,14 +113,14 @@ class AvPos(object):
         self._compile_cl()
         
         # Process the files sorted by name.
-        files_sorted = sorted(self.__cl_files_order)
+        files_sorted = sorted(self._cl_files_order)
         
         for fs in files_sorted:
-            idx = self.__cl_files_order.index(fs)
+            idx = self._cl_files_order.index(fs)
             
             clda = ClDat(NO_READ_INDEX)
             
-            full_file_name = os.path.join(self.__dir, self.__cl_files[idx])
+            full_file_name = os.path.join(self._dir, self._cl_files[idx])
             
             clda.read_cldata(full_file_name)
             
@@ -110,7 +128,8 @@ class AvPos(object):
             avpos = self._add_cl(avpos, clda.a2)
             
         save_data_to_csv(AVPOS_FILE, avpos)
-            
-        return avpos
+        
+        for a in avpos:
+            self._avpos.update( { a[0] : a[1:] } )
             
             
