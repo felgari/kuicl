@@ -59,7 +59,7 @@ class AvPos(object):
         
         first_year = now.year
         
-        if now.month < REF_MONTH:
+        if now.month < REF_MONTH_COMP_STOP:
             first_year = first_year - 1
             
         self._dir = str(first_year - 2000) + "-" + str(first_year + 1 - 2000)
