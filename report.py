@@ -26,6 +26,7 @@ import csv
 from ctes import *
 from avpos import AvPos
 from resdifpos import ResDiffPos
+from aptrend import ApTrend
 from kfiles import read_input_file, read_res_file
 
 def get_matchings(name, data, is_first):
@@ -58,6 +59,8 @@ def process_k(k_data, b1_data, a2_data, cl, index, pred_rf, pre, ex_mean):
     rdp = ResDiffPos()
     
     rdp.calculate()
+    
+    aptr = ApTrend()
     
     print "Saving to file: %s" % out_file_name
     
@@ -92,13 +95,23 @@ def process_k(k_data, b1_data, a2_data, cl, index, pred_rf, pre, ex_mean):
                 f.write("Pre %s\n" % pre[idx])
                 f.write("Ext %s\n" % ex_mean[idx])
                 
-                f.write("Trend %s\n" % \
-                        rdp.trend(cl_1[CL_POS_COL], cl_2[CL_POS_COL], elt_type))
+                trend = rdp.trend(cl_1[CL_POS_COL], cl_2[CL_POS_COL], elt_type)
+                
+                f.write("Trend %s\n" % trend)
+                
+                name_1_trend = avp.trend(k_name_1)
+                name_2_trend = avp.trend(k_name_2)
                 
                 f.write("Pos. %s: %s %s\n" % \
-                        (k_name_1, avp.avpos(k_name_1), avp.trend(k_name_1)))
+                        (k_name_1, avp.avpos(k_name_1), name_1_trend))
                 f.write("Pos. %s: %s %s\n" % \
-                        (k_name_2, avp.avpos(k_name_2), avp.trend(k_name_2)))
+                        (k_name_2, avp.avpos(k_name_2), name_2_trend))
+                
+                f.write("Ap trend: %s\n" % aptr.calculate_ap(trend, \
+                                                             name_1_trend, \
+                                                             name_2_trend, \
+                                                             int(cl_1[CL_POS_COL]), \
+                                                             int(cl_2[CL_POS_COL])))
                 
                 f.write("%s\n" % FIRST_SEP)
                 
@@ -119,6 +132,8 @@ def process_k(k_data, b1_data, a2_data, cl, index, pred_rf, pre, ex_mean):
                     f.write("%s (%s)\n" % (m, mat_cl[CL_POS_COL]))
                     
                 idx += 1
+                
+        aptr.write_data(index)
                     
     except IOError as ioe:
          print "Error saving file: '%s'" % out_file_name               
