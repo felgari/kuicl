@@ -47,14 +47,11 @@ class KScrap(object):
         except urllib2.URLError as ue:
             print(ue)
         else:
-            try:
-                session = requests.Session()
-    
-                req = session.get(url, headers=REQUEST_HEADERS)  
-                
-                bsObj = BeautifulSoup(req.text, "lxml")
-            except AttributeError as ae:
-                print(ae)
+            session = requests.Session()
+
+            req = session.get(url, headers=REQUEST_HEADERS)  
+            
+            bsObj = BeautifulSoup(req.text, "lxml")
                 
         return bsObj 
     
@@ -116,10 +113,11 @@ class KScrap(object):
     
         bsObj = KScrap.retrieve_page(K_URL)
         
-        try:
-            k_data, index = KScrap._process_k_page(bsObj)
-        except KeyError as ke:
-            print "ERROR retrieving k: %s" % ke
+        if bsObj:
+            try:
+                k_data, index = KScrap._process_k_page(bsObj)
+            except KeyError as ke:
+                print "ERROR retrieving k: %s" % ke
                 
         return k_data, index
     
@@ -199,15 +197,19 @@ class KScrap(object):
     
     @staticmethod
     def lm_scraping(lm):
-    
-        bsObj = KScrap.retrieve_page(LM_URL)
         
         try:
+            bsObj = KScrap.retrieve_page(LM_URL)
+            
             KScrap._process_lm_page(bsObj, lm)
             
             print "Read: %dx%d" % (len(lm), len(lm[0]))
-        except AttributeError:
-            print "ERROR retrieving lm"
+        except AttributeError as ae:
+            print "ERROR retrieving lm: %s" % ae
+        except BadStatusLine as bsl:
+            print "ERROR BadStatusLine lm: %s" % bsl
+        except ConnectionError as ce:
+            print "ERROR ConnectionError lm: %s" % ce
         
     # ------------------------------------- VE scraping.  
     @staticmethod      
@@ -227,14 +229,18 @@ class KScrap(object):
     @staticmethod
     def ve_scraping(ve):
     
-        bsObj = KScrap.retrieve_page(VE_URL)
-        
         try:
+            bsObj = KScrap.retrieve_page(VE_URL)
+            
             KScrap._process_ve_page(bsObj, ve)
         
             print "Read: %dx%d" % (len(ve), len(ve[0]))
         except AttributeError as ae:
             print "ERROR retrieving ve: %s" % ae
+        except BadStatusLine as bsl:
+            print "ERROR BadStatusLine ve: %s" % bsl
+        except ConnectionError as ce:
+            print "ERROR ConnectionError ve: %s" % ce 
 
     # ------------------------------------- QU scraping.
     @staticmethod
@@ -264,14 +270,18 @@ class KScrap(object):
     def qu_scraping(qu):
         
         if sum(qu[0]) == 0:
-            bsObj = KScrap.retrieve_page(QU_URL)
-            
             try:
+                bsObj = KScrap.retrieve_page(QU_URL)
+                
                 KScrap._process_qu_page(bsObj, qu)
             
                 print "Read: %dx%d" % (len(qu), len(qu[0]))
-            except AttributeError:
-                print "ERROR retrieving qu"
+            except AttributeError as ae:
+                print "ERROR retrieving qu: %s" % ae
+            except BadStatusLine as bsl:
+                print "ERROR BadStatusLine qu: %s" % bsl
+            except ConnectionError as ce:
+                print "ERROR ConnectionError qu: %s" % ce
             
     # ------------------------------------- Q1 scraping.
     @staticmethod
@@ -296,17 +306,19 @@ class KScrap(object):
     def q1_scraping(q1, index):
         
         if sum(q1[0]) == 0:
-            # The ULR depends on the index received.  
-            url = Q1_URL + index
-        
-            bsObj = KScrap.retrieve_page(url)
             
             try:
+                bsObj = KScrap.retrieve_page(Q1_URL)
+                
                 KScrap._process_q1_page(bsObj, q1)    
             
                 print "Read: %dx%d" % (len(q1), len(q1[0])) 
-            except AttributeError:
-                print "ERROR retrieving q1"       
+            except AttributeError as ae:
+                print "ERROR retrieving q1: %s" % ae   
+            except BadStatusLine as bsl:
+                print "ERROR BadStatusLine q1: %s" % bsl   
+            except ConnectionError as ce:
+                print "ERROR ConnectionError q1: %s" % ce    
         
     # ------------------------------------- CQ scraping.
     @staticmethod
@@ -343,14 +355,19 @@ class KScrap(object):
     def cq_scraping(cq, cqp):
         
         if sum(cq[0]) == 0:
-            bsObj = KScrap.retrieve_page(CQ_URL)        
             
             try:
+                bsObj = KScrap.retrieve_page(CQ_URL) 
+                
                 KScrap._process_cq_page(bsObj, cq, cqp)     
             
                 print "Read: %dx%d" % (len(cq), len(cqp))
-            except AttributeError:
-                print "ERROR retrieving cq"     
+            except AttributeError as ae:
+                print "ERROR retrieving cq: %s" % ae  
+            except BadStatusLine as bsl:
+                print "ERROR BadStatusLine cq: %s" % bsl
+            except ConnectionError as ce:
+                print "ERROR ConnectionError cq: %s" % ce
     
     # ------------------------------------- Cl scraping.
     @staticmethod
